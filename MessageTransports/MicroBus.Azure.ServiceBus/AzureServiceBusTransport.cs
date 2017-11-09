@@ -61,7 +61,7 @@ namespace MicroBus
             if (topicClient == null) topicClient = new TopicClient(connectionString, TopicName);
 
 
-            return topicClient.SendAsync(message.SerializeMessage());
+            return topicClient.SendAsync(new Message().SetMessageBody(message));
         }
 
         public async Task StartAsync()
@@ -71,7 +71,7 @@ namespace MicroBus
             //only start if there is a consumer
             //if (subscriptionClient == null) subscriptionClient = new SubscriptionClient(connectionString, TopicName, "receivername");
             subscriptionClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(message.DeserializeMessage(), cancellationToken),
+                (message, cancellationToken) => messageHandlerExecutor.Execute(message.GetMessageBody(), cancellationToken),
                     new MessageHandlerOptions((arg) => { return Task.CompletedTask; }) { });
         }
 
