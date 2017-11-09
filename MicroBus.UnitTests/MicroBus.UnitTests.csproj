@@ -16,8 +16,10 @@
   <ItemGroup>
     <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
     <ProjectReference Include="..\DependencyResolvers\MicroBus.Microsoft.Extensions.DependencyInjection\MicroBus.Microsoft.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="..\MessageTransports\MicroBus.Azure.ServiceBus\MicroBus.Azure.ServiceBus.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyResolvers\" />
+    <Folder Include="MessageTransports\" />
   </ItemGroup>
 </Project>
