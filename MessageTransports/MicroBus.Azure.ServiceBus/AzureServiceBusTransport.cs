@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MicroBus.Azure.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
 using Microsoft.Azure.ServiceBus;
@@ -17,11 +18,7 @@ namespace MicroBus
         private const string TopicName = "MicroBus";
         private readonly string connectionString;
         private MessageHandlerExecutor messageHandlerExecutor;
-        private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration
-        {
-
-        };
-
+        private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration { };
         private TopicClient topicClient;
         private SubscriptionClient subscriptionClient;
         public AzureServiceBusTransport(string connectionString, Action<AzureServiceBusConfiguration> configuration)
@@ -61,11 +58,13 @@ namespace MicroBus
             if (topicClient == null) topicClient = new TopicClient(connectionString, TopicName);
 
 
-            return topicClient.SendAsync(new Message().SetMessageBody(message));
+            return topicClient.SendAsync(new Message().SetMessageBody(message).SetDestinationQueue(queue));
         }
 
         public async Task StartAsync()
         {
+            if (string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName)) throw new InvalidOperationException("If this bus does not need to receive, starting and stopping the bus is unnecessary. If this bus needs to receive, the receive options need to be configured.");
+
             await CreateOrUpdatePublishEndpointAsync(null);
             await CreateOrUpdateReceivingEndpointAsync();
             //only start if there is a consumer
@@ -75,11 +74,7 @@ namespace MicroBus
                     new MessageHandlerOptions((arg) => { return Task.CompletedTask; }) { });
         }
 
-        public Task StopAsync()
-        {
-            //only stop if there is a consumer
-            throw new NotImplementedException();
-        }
+        public Task StopAsync() => subscriptionClient?.CloseAsync() ?? Task.CompletedTask;
 
         public async Task CreateOrUpdateReceivingEndpointAsync()
         {
@@ -107,10 +102,10 @@ namespace MicroBus
                 configuration.ReceiveOptions.QueueName,
                 serviceBusSubscription);
 
-            var eventFilter = new Rule
+            var eventMessageFilter = new Rule
             {
                 SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
-                    $"user.MessageType IN ({string.Join(",", events)})")
+                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", events)})")
             };
 
             await sbClient.Rules.CreateOrUpdateAsync(
@@ -118,21 +113,21 @@ namespace MicroBus
                 configuration.NamespaceName,
                 TopicName,
                 configuration.ReceiveOptions.QueueName,
-                "eventFilter",
-                eventFilter);
+                nameof(eventMessageFilter),
+                eventMessageFilter);
 
-            var receiverFilter = new Rule
+            var commandMessageFilter = new Rule
             {
                 SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
-                    $"user.Queue='{configuration.ReceiveOptions.QueueName}'")
+                    $"user.{UserProperties.DestinationQueueKey}='{configuration.ReceiveOptions.QueueName}'")
             };
             await sbClient.Rules.CreateOrUpdateAsync(
                 configuration.ResourceGroupName,
                 configuration.NamespaceName,
                 TopicName,
                 configuration.ReceiveOptions.QueueName,
-                "receiverFilter",
-                receiverFilter);
+                nameof(commandMessageFilter),
+                commandMessageFilter);
         }
 
         public void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor)

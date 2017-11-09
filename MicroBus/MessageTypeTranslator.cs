@@ -5,12 +5,12 @@ using System.Reflection;
 
 namespace MicroBus
 {
-    public class MessageTypeCreator
+    public class MessageTypeTranslator
     {
         private readonly IDictionary<string, Type> fullNameToMessageTypeMap = new Dictionary<string, Type>();
 
         private readonly ICollection<Assembly> favoredAssemblies = new List<Assembly>();
-        public Type Create(string fullName)
+        public Type TranslateFromNameToType(string fullName)
         {
             if (fullNameToMessageTypeMap.TryGetValue(fullName, out var messageType)) return messageType;
             foreach (var assembly in favoredAssemblies)
@@ -36,5 +36,7 @@ namespace MicroBus
 
             throw new NotSupportedException($"Cannot find type {fullName} in any assemblies to deserialize.");
         }
+
+        public static string TranslateFromTypeToName<T>() => typeof(T).FullName;
     }
 }

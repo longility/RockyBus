@@ -38,6 +38,18 @@ namespace MicroBus.SenderDemo
             await bus.PublishAsync(new TestEvent2Message { Text = "This is event 2." });
             await bus.SendAsync(new TestCommandMessage { Text = "This is command." });
             await bus.SendAsync(new TestCommand2Message { Text = "This is command 2." });
+
+            //get default dependency resolver working for simple use case
+                //manually add handlers
+            //samples
+            //separate process to do forward :(
+            //Retry policy
+//Unit tests
+//Test different .net frameworks as consumer
+//GitHub
+//Documentation
+//Deploy to nuget server
+//Error handling /DLQ
         }
     }
 }

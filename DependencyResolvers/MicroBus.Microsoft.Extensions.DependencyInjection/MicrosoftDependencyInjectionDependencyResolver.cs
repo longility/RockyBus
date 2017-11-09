@@ -16,6 +16,11 @@ namespace MicroBus
         {
             return new MicrosoftDependencyInjectionScope(serviceProvider.CreateScope());
         }
+
+        public string[] ResolvableMessageTypeNames()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal class MicrosoftDependencyInjectionScope : IResolverScope
