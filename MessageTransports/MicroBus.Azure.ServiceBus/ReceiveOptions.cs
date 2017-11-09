@@ -4,6 +4,7 @@ namespace MicroBus
     public class ReceiveOptions
     {
         public string QueueName { get; set; }
+        //queue/subscription settings
 
     }
 }

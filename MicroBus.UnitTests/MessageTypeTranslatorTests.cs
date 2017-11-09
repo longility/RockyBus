@@ -5,23 +5,23 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace MicroBus.UnitTests
 {
     [TestClass]
-    public class MessageTypeCreatorTests
+    public class MessageTypeTranslatorTests
     {
         class TestMessage { public string Text { get; set; } }
 
         [TestMethod]
-        public void ShouldCreateMessageTypeByFullName()
+        public void ShouldTranslateFromNameToType()
         {
-            var creator = new MessageTypeCreator();
-            var messageType = creator.Create(typeof(TestMessage).FullName);
+            var translator = new MessageTypeTranslator();
+            var messageType = translator.TranslateFromNameToType(MessageTypeTranslator.TranslateFromTypeToName<TestMessage>());
             messageType.Should().Be(typeof(TestMessage));
         }
 
         [TestMethod]
         public void ShouldThrowForNotFindingInAssembly()
         {
-            var creator = new MessageTypeCreator();
-            Action action = () => creator.Create("MicroBus.UnitTests.TestMessage2");
+            var translator = new MessageTypeTranslator();
+            Action action = () => translator.TranslateFromNameToType("MicroBus.UnitTests.TestMessage2");
             action.ShouldThrow<NotSupportedException>();
         }
     }

@@ -7,5 +7,10 @@ namespace MicroBus
         {
             throw new NotImplementedException();
         }
+
+        public string[] ResolvableMessageTypeNames()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
