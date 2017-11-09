@@ -10,9 +10,14 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="FluentAssertions" Version="4.19.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
+    <ProjectReference Include="..\DependencyResolvers\MicroBus.Microsoft.Extensions.DependencyInjection\MicroBus.Microsoft.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DependencyResolvers\" />
   </ItemGroup>
 </Project>

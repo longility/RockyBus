@@ -11,6 +11,6 @@
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.17.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
+    <ProjectReference Include="..\..\MicroBus\MicroBus.csproj" />
   </ItemGroup>
 </Project>

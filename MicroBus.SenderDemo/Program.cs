@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MicroBus.DemoMessages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MicroBus.SenderDemo
 {
@@ -13,7 +14,12 @@ namespace MicroBus.SenderDemo
             var clientId = "";
             var clientSecret = "";
 
-            var bus = new Bus(new AzureServiceBusTransport(
+            var serviceCollection = new ServiceCollection();
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var bus = new BusBuilder()
+                .UseAzureServiceBus(
                 "",
                 configuration => 
             {
@@ -24,7 +30,9 @@ namespace MicroBus.SenderDemo
 
                 configuration.PublishAndSendOptions
                            .MapCommandToQueue<TestCommandMessage>("receiver")
-                           .MapCommandToQueue<TestCommand2Message>("randomreceiver");}));
+                           .MapCommandToQueue<TestCommand2Message>("randomreceiver");})
+                .UseMicrosoftDependencyInjection(serviceProvider)
+                .Build();
             await bus.StartAsync();
             await bus.PublishAsync(new TestEventMessage { Text = "This is event." });
             await bus.PublishAsync(new TestEvent2Message { Text = "This is event 2." });

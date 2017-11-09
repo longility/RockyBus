@@ -5,11 +5,11 @@ using MicroBus.Abstractions;
 
 namespace MicroBus
 {
-    public class Bus : IBus
+    class Bus : IBus
     {
-        readonly IBusTransport busTransport;
+        readonly IMessageTransport busTransport;
 
-        public Bus(IBusTransport busTransport)
+        public Bus(IMessageTransport busTransport)
         {
             this.busTransport = busTransport;
         }

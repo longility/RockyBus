@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
-    <ProjectReference Include="..\MicroBus.Azure.ServiceBus\MicroBus.Azure.ServiceBus.csproj" />
     <ProjectReference Include="..\MicroBus.DemoMessages\MicroBus.DemoMessages.csproj" />
+    <ProjectReference Include="..\MicroBus.Abstractions\MicroBus.Abstractions.csproj" />
+    <ProjectReference Include="..\MessageTransports\MicroBus.Azure.ServiceBus\MicroBus.Azure.ServiceBus.csproj" />
+    <ProjectReference Include="..\DependencyResolvers\MicroBus.Microsoft.Extensions.DependencyInjection\MicroBus.Microsoft.Extensions.DependencyInjection.csproj" />
   </ItemGroup>
 </Project>

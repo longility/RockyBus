@@ -12,10 +12,11 @@ using Newtonsoft.Json;
 
 namespace MicroBus
 {
-    public class AzureServiceBusTransport : IBusTransport
+    internal class AzureServiceBusTransport : IMessageTransport
     {
         private const string TopicName = "MicroBus";
         private readonly string connectionString;
+        private MessageHandlerExecutor messageHandlerExecutor;
         private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration
         {
 
@@ -52,20 +53,15 @@ namespace MicroBus
         public Task PublishAsync<T>(T eventMessage) => SendMessageAsync(eventMessage);
 
         public Task SendAsync<T>(T commandMessage) => SendMessageAsync(
-            commandMessage, 
+            commandMessage,
             configuration.PublishAndSendOptions.GetQueue<T>());
 
         private Task SendMessageAsync<T>(T message, string queue = null)
         {
             if (topicClient == null) topicClient = new TopicClient(connectionString, TopicName);
 
-            var type = typeof(T);
 
-            var serviceBusMessage = new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)));
-
-            serviceBusMessage.UserProperties.Add("MessageType", type.FullName);
-            serviceBusMessage.UserProperties.Add("Queue", queue);
-            return topicClient.SendAsync(serviceBusMessage);
+            return topicClient.SendAsync(message.SerializeMessage());
         }
 
         public async Task StartAsync()
@@ -74,7 +70,9 @@ namespace MicroBus
             await CreateOrUpdateReceivingEndpointAsync();
             //only start if there is a consumer
             //if (subscriptionClient == null) subscriptionClient = new SubscriptionClient(connectionString, TopicName, "receivername");
-            //subscriptionClient.RegisterMessageHandler();
+            subscriptionClient.RegisterMessageHandler(
+                (message, cancellationToken) => messageHandlerExecutor.Execute(message.DeserializeMessage(), cancellationToken),
+                    new MessageHandlerOptions((arg) => { return Task.CompletedTask; }) { });
         }
 
         public Task StopAsync()
@@ -85,7 +83,7 @@ namespace MicroBus
 
         public async Task CreateOrUpdateReceivingEndpointAsync()
         {
-            var events = new[] { "MicroBus.DemoMessages.TestEventMessage" }.Select(e=> $"'{e}'").ToArray();
+            var events = new[] { "MicroBus.DemoMessages.TestEventMessage" }.Select(e => $"'{e}'").ToArray();
 
             var context = new AuthenticationContext($"https://login.microsoftonline.com/{configuration.TenantId}");
 
@@ -108,11 +106,11 @@ namespace MicroBus
                 TopicName,
                 configuration.ReceiveOptions.QueueName,
                 serviceBusSubscription);
-            
+
             var eventFilter = new Rule
             {
                 SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
-                    $"user.MessageType IN ({string.Join(",",events)})")
+                    $"user.MessageType IN ({string.Join(",", events)})")
             };
 
             await sbClient.Rules.CreateOrUpdateAsync(
@@ -122,7 +120,7 @@ namespace MicroBus
                 configuration.ReceiveOptions.QueueName,
                 "eventFilter",
                 eventFilter);
-            
+
             var receiverFilter = new Rule
             {
                 SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
@@ -130,11 +128,16 @@ namespace MicroBus
             };
             await sbClient.Rules.CreateOrUpdateAsync(
                 configuration.ResourceGroupName,
-                configuration.NamespaceName, 
-                TopicName, 
-                configuration.ReceiveOptions.QueueName, 
-                "receiverFilter", 
+                configuration.NamespaceName,
+                TopicName,
+                configuration.ReceiveOptions.QueueName,
+                "receiverFilter",
                 receiverFilter);
+        }
+
+        public void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor)
+        {
+            this.messageHandlerExecutor = messageHandlerExecutor;
         }
     }
 }
