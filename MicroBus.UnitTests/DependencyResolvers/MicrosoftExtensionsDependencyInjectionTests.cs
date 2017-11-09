@@ -15,7 +15,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
+            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection));
 
             Action action = () => executor.Execute(new AppleEvent(), new System.Threading.CancellationToken());
 
@@ -30,7 +30,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
+            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection));
 
             var task = executor.Execute(new AppleEvent(), new System.Threading.CancellationToken());
 
@@ -45,7 +45,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
+            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection));
 
             var task = executor.Execute(new BananaEvent(), new System.Threading.CancellationToken());
 

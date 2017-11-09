@@ -4,6 +4,5 @@ namespace MicroBus
     public interface IDependencyResolver
     {
         IResolverScope CreateScope();
-        string[] ResolvableMessageTypeNames();
     }
 }

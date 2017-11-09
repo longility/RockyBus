@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using MicroBus.Abstractions;
 using MicroBus.DemoMessages;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,22 +19,28 @@ namespace MicroBus.SenderDemo
             var serviceCollection = new ServiceCollection();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
+            serviceCollection.AddSingleton<IBus>(p =>
+                {
+                    return new BusBuilder()
+                        .UseAzureServiceBus(
+                        "",
+                        configuration =>
+                        {
+                            configuration.SubscriptionId = subscriptionId;
+                            configuration.TenantId = tenantId;
+                            configuration.ClientId = clientId;
+                            configuration.ClientSecret = clientSecret;
 
-            var bus = new BusBuilder()
-                .UseAzureServiceBus(
-                "",
-                configuration => 
-            {
-                configuration.SubscriptionId = subscriptionId;
-                configuration.TenantId = tenantId;
-                configuration.ClientId = clientId;
-                configuration.ClientSecret = clientSecret;
+                            configuration.PublishAndSendOptions
+                                       .MapCommandToQueue<TestCommandMessage>("receiver")
+                                       .MapCommandToQueue<TestCommand2Message>("randomreceiver");
+                        })
+                        .UseMicrosoftDependencyInjection(p, serviceCollection)
+                        .Build();
+                });
+            var bus = serviceProvider.GetService<IBus>();
+            //TECHNICAL ISSUE: May not be able to do same pattern with other dependency injection frameworks.
 
-                configuration.PublishAndSendOptions
-                           .MapCommandToQueue<TestCommandMessage>("receiver")
-                           .MapCommandToQueue<TestCommand2Message>("randomreceiver");})
-                .UseMicrosoftDependencyInjection(serviceProvider)
-                .Build();
             await bus.StartAsync();
             await bus.PublishAsync(new TestEventMessage { Text = "This is event." });
             await bus.PublishAsync(new TestEvent2Message { Text = "This is event 2." });
