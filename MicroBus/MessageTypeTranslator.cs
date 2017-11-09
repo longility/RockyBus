@@ -37,6 +37,7 @@ namespace MicroBus
             throw new NotSupportedException($"Cannot find type {fullName} in any assemblies to deserialize.");
         }
 
-        public static string TranslateFromTypeToName<T>() => typeof(T).FullName;
+        public static string TranslateFromTypeToName<T>() => TranslateFromTypeToName(typeof(T));
+        public static string TranslateFromTypeToName(Type type) => type.FullName;
     }
 }

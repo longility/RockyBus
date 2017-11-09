@@ -11,5 +11,6 @@ namespace MicroBus
         Task SendAsync<T>(T commandMessage);
         Task StopAsync();
         void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor);
+        void SetHandlingEventMessageTypes(string[] resolvableMessageTypeNames);
     }
 }

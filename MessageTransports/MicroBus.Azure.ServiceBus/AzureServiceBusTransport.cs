@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using MicroBus.Azure.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus;
@@ -9,7 +6,6 @@ using Microsoft.Azure.Management.ServiceBus.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
-using Newtonsoft.Json;
 
 namespace MicroBus
 {
@@ -21,6 +17,8 @@ namespace MicroBus
         private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration { };
         private TopicClient topicClient;
         private SubscriptionClient subscriptionClient;
+        private string[] handlingEventMessageTypes;
+
         public AzureServiceBusTransport(string connectionString, Action<AzureServiceBusConfiguration> configuration)
         {
             this.connectionString = connectionString;
@@ -78,7 +76,7 @@ namespace MicroBus
 
         public async Task CreateOrUpdateReceivingEndpointAsync()
         {
-            var events = new[] { "MicroBus.DemoMessages.TestEventMessage" }.Select(e => $"'{e}'").ToArray();
+            var events = handlingEventMessageTypes;
 
             var context = new AuthenticationContext($"https://login.microsoftonline.com/{configuration.TenantId}");
 
@@ -130,9 +128,7 @@ namespace MicroBus
                 commandMessageFilter);
         }
 
-        public void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor)
-        {
-            this.messageHandlerExecutor = messageHandlerExecutor;
-        }
+        public void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor) => this.messageHandlerExecutor = messageHandlerExecutor;
+        public void SetHandlingEventMessageTypes(string[] handlingEventMessageTypes) => this.handlingEventMessageTypes = handlingEventMessageTypes;
     }
 }
