@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MicroBus.DemoMessages;
 
 namespace MicroBus.UnitTests.DependencyResolvers
 {
-    public class AppleEventHandler : IMessageHandler<AppleEvent>
+    public class AppleCommandHandler : IMessageHandler<AppleCommand>
     {
-        public Task Handle(AppleEvent message) => Task.CompletedTask;
+        public Task Handle(AppleCommand message) => Task.CompletedTask;
     }
 
-    public class BananaEventHandler : BaseEventHandler<BananaEvent> 
+    public class BananaCommandHandler : BaseEventHandler<BananaCommand> 
     {
         
     }

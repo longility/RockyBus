@@ -4,9 +4,9 @@ namespace MicroBus.Abstractions
 {
     public interface IBus
     {
-        Task StartAsync();
-        Task PublishAsync<T>(T eventMessage);
-        Task SendAsync<T>(T commandMessage);
-        Task StopAsync();
+        Task Start();
+        Task Publish<T>(T eventMessage);
+        Task Send<T>(T commandMessage);
+        Task Stop();
     }
 }

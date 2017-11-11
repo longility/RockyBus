@@ -1,28 +1,20 @@
 ﻿using System;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MicroBus
 {
-    internal class MicrosoftDependencyInjectionDependencyResolver : IDependencyResolver, IMessageHandlerResolution
+    internal class MicrosoftDependencyInjectionDependencyResolver : IDependencyResolver
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly string[] resolvableMessageTypeNames;
-        public MicrosoftDependencyInjectionDependencyResolver(IServiceProvider serviceProvider, IEnumerable<ServiceDescriptor> serviceDescriptors)
+        public MicrosoftDependencyInjectionDependencyResolver(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
-            this.resolvableMessageTypeNames = serviceDescriptors
-                .Where(c => c.ServiceType == typeof(IMessageHandler<>))
-                .Select(c => MessageTypeTranslator.TranslateFromTypeToName(c.ServiceType.GetGenericArguments()[0])).ToArray();
         }
 
         public IResolverScope CreateScope()
         {
             return new MicrosoftDependencyInjectionScope(serviceProvider.CreateScope());
         }
-
-        public string[] ResolvableMessageTypeNames() => resolvableMessageTypeNames;
     }
 
     internal class MicrosoftDependencyInjectionScope : IResolverScope
@@ -40,12 +32,11 @@ namespace MicroBus
 
     public static class DependencyResolverExtensions
     {
-        public static BusBuilder UseMicrosoftDependencyInjection(this BusBuilder busBuilder, IServiceProvider serviceProvider, IEnumerable<ServiceDescriptor> serviceDescriptors)
+        public static BusBuilder UseMicrosoftDependencyInjection(this BusBuilder busBuilder, IServiceProvider serviceProvider)
         {
-            var dependencyInjection = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceDescriptors);
+            var dependencyInjection = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
             return busBuilder
-                .UseDependencyResolver(dependencyInjection)
-                .UseMessageHandlerResolution(dependencyInjection);
+                .UseDependencyResolver(dependencyInjection);
         }
     }
 }

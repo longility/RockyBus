@@ -2,7 +2,7 @@
 
 namespace MicroBus.DemoMessages
 {
-    public class TestCommand2Message
+    public class CatEvent
     {
         public string Text
         {

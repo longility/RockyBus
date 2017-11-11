@@ -1,48 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using MicroBus.Abstractions;
+using MicroBus.Message;
 
 namespace MicroBus
 {
     class Bus : IBus
     {
         readonly IMessageTransport busTransport;
+        readonly IDependencyResolver dependencyResolver;
+        readonly BusMessages busMessages;
+        bool started = false;
 
-        public Bus(IMessageTransport busTransport)
+        public Bus(IMessageTransport busTransport, IDependencyResolver dependencyResolver, MessageScanRules rules)
         {
             this.busTransport = busTransport;
+            this.dependencyResolver = dependencyResolver;
+            this.busMessages = new BusMessages(rules);
         }
 
-        public async Task PublishAsync<T>(T eventMessage)
+        public Task Publish<T>(T eventMessage)
         {
-            await InitializePublishEndpointIfNotInitialized(typeof(T));
-            await busTransport.PublishAsync(eventMessage);
+            if (!started) throw new InvalidOperationException("The bus has not been started.");
+            var type = typeof(T);
+            if (!busMessages.IsAnEvent(type)) throw BusMessages.CreateMessageNotFoundException(type);
+            return busTransport.Publish(eventMessage, busMessages.GetMessageTypeNameByType(type));
         }
 
-        public Task SendAsync<T>(T commandMessage)
+        public Task Send<T>(T commandMessage)
         {
-            return busTransport.SendAsync(commandMessage);
+            if (!started) throw new InvalidOperationException("The bus has not been started.");
+            var type = typeof(T);
+            if (!busMessages.IsACommand(type)) throw BusMessages.CreateMessageNotFoundException(type);
+            return busTransport.Send(commandMessage, busMessages.GetMessageTypeNameByType(type));
         }
 
-        public Task StartAsync()
+        public async Task Start()
         {
-            return busTransport.StartAsync();
+            busTransport.MessageTypeNames = busMessages;
+            await busTransport.InitializePublishingEndpoint();
+            if (!busTransport.IsPublishAndSendOnly)
+            {
+                await busTransport.InitializeReceivingEndpoint();
+                await busTransport.StartReceivingMessages(new MessageHandlerExecutor(dependencyResolver));
+            }
+
+            started = true;
         }
 
-        public Task StopAsync()
+        public Task Stop()
         {
-            return busTransport.StopAsync();
+            return busTransport.StopReceivingMessages();
         }
 
-        readonly ICollection<Type> initializedPublishEndpoints = new HashSet<Type>();
-
-        async Task InitializePublishEndpointIfNotInitialized(Type messageType)
-        {
-            if (initializedPublishEndpoints.Contains(messageType)) return;
-
-            await busTransport.CreateOrUpdatePublishEndpointAsync(messageType);
-            initializedPublishEndpoints.Add(messageType);
-        }
+        internal string GetMessageTypeNameByType(Type type) => busMessages.GetMessageTypeNameByType(type);
+        internal Type GetTypeByMessageTypeName(string messageTypeName) => busMessages.GetTypeByMessageTypeName(messageTypeName);
     }
 }
