@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MicroBus.DemoMessages;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MicroBus.UnitTests
@@ -6,25 +7,20 @@ namespace MicroBus.UnitTests
     [TestClass]
     public class MessageHandlerTypeCreatorTests
     {
-        class TestMessage { public string Text { get; set; } }
-        class TestMessage2 { public string Text { get; set; } }
-
         [TestMethod]
-        public void ShouldMatchNaturalTypeWithCreatedType()
+        public void create_message_handler_of_type_should_match_message_handler_type()
         {
-            var naturalType = typeof(IMessageHandler<TestMessage>);
             var creator = new MessageHandlerTypeCreator();
-            var createdType = creator.Create(typeof(TestMessage));
-            createdType.Should().Be(naturalType);
+            var createdType = creator.Create(typeof(AppleCommand));
+            createdType.Should().Be(typeof(IMessageHandler<AppleCommand>));
         }
 
         [TestMethod]
-        public void ShouldNotMatchNaturalTypeWithCreatedType()
+        public void create_message_handler_of_different_type_should_not_match_message_handler_type()
         {
-            var naturalType = typeof(IMessageHandler<TestMessage2>);
             var creator = new MessageHandlerTypeCreator();
-            var createdType = creator.Create(typeof(TestMessage));
-            createdType.Should().NotBe(naturalType);
+            var createdType = creator.Create(typeof(AppleCommand));
+            createdType.Should().NotBe(typeof(IMessageHandler<BananaCommand>));
         }
     }
 }

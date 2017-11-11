@@ -11,15 +11,15 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
+    <PackageReference Include="NSubstitute" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
     <ProjectReference Include="..\DependencyResolvers\MicroBus.Microsoft.Extensions.DependencyInjection\MicroBus.Microsoft.Extensions.DependencyInjection.csproj" />
-    <ProjectReference Include="..\MessageTransports\MicroBus.Azure.ServiceBus\MicroBus.Azure.ServiceBus.csproj" />
+    <ProjectReference Include="..\MicroBus.DemoMessages\MicroBus.DemoMessages.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyResolvers\" />
-    <Folder Include="MessageTransports\" />
   </ItemGroup>
 </Project>

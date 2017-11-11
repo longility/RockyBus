@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MicroBus.Message;
 using MicroBus.Azure.ServiceBus;
-using Microsoft.Azure.Management.ServiceBus;
-using Microsoft.Azure.Management.ServiceBus.Models;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.Rest;
+using System.Text;
+using Newtonsoft.Json;
+
+using ServiceBusMessage = Microsoft.Azure.ServiceBus.Message;
 
 namespace MicroBus
 {
@@ -13,122 +14,58 @@ namespace MicroBus
     {
         private const string TopicName = "MicroBus";
         private readonly string connectionString;
-        private MessageHandlerExecutor messageHandlerExecutor;
+        private readonly AzureServiceBusManagement azureServiceBusManagement;
         private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration { };
-        private TopicClient topicClient;
         private SubscriptionClient subscriptionClient;
-        private string[] handlingEventMessageTypes;
+        private TopicClient topicClient;
+        public IMessageTypeNames MessageTypeNames { get; set; }
+
+        public bool IsPublishAndSendOnly => string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName);
 
         public AzureServiceBusTransport(string connectionString, Action<AzureServiceBusConfiguration> configuration)
         {
             this.connectionString = connectionString;
             configuration(this.configuration);
+            this.azureServiceBusManagement = new AzureServiceBusManagement(this.configuration);
         }
 
-        public async Task CreateOrUpdatePublishEndpointAsync(Type messageType)
+        public async Task InitializePublishingEndpoint()
         {
-            var context = new AuthenticationContext($"https://login.microsoftonline.com/{configuration.TenantId}");
+            await azureServiceBusManagement.InitializePublishingEndpoint(TopicName);
 
-            var result = await context.AcquireTokenAsync(
-                "https://management.core.windows.net/",
-                new ClientCredential(configuration.ClientId, configuration.ClientSecret)
-            );
-
-            var creds = new TokenCredentials(result.AccessToken);
-            var sbClient = new ServiceBusManagementClient(creds)
-            {
-                SubscriptionId = configuration.SubscriptionId
-            };
-
-            var serviceBusTopic = new SBTopic { };
-
-            await sbClient.Topics.CreateOrUpdateAsync(configuration.ResourceGroupName, configuration.NamespaceName, TopicName, serviceBusTopic);
+            topicClient = new TopicClient(connectionString, TopicName);
         }
 
-        public Task PublishAsync<T>(T eventMessage) => SendMessageAsync(eventMessage);
+        public Task InitializeReceivingEndpoint() => azureServiceBusManagement.InitializeReceivingEndpoint(TopicName, MessageTypeNames.EventMessageTypeNames);
 
-        public Task SendAsync<T>(T commandMessage) => SendMessageAsync(
-            commandMessage,
-            configuration.PublishAndSendOptions.GetQueue<T>());
+        public Task Publish<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName);
+        public Task Send<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName, true);
 
-        private Task SendMessageAsync<T>(T message, string queue = null)
+        private Task SendToTopic<T>(T message, string messageTypeName, bool isCommand = false)
         {
-            if (topicClient == null) topicClient = new TopicClient(connectionString, TopicName);
-
-
-            return topicClient.SendAsync(new Message().SetMessageBody(message).SetDestinationQueue(queue));
+            var serviceBusMessage = new ServiceBusMessage { Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)) };
+            serviceBusMessage.UserProperties.Add(UserProperties.MessageTypeKey, messageTypeName);
+            if (isCommand) serviceBusMessage.UserProperties.Add(UserProperties.DestinationQueueKey, configuration.PublishAndSendOptions.GetQueue<T>());
+            return topicClient.SendAsync(serviceBusMessage);
         }
 
-        public async Task StartAsync()
+        public Task StartReceivingMessages(MessageHandlerExecutor messageHandlerExecutor)
         {
-            if (string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName)) throw new InvalidOperationException("If this bus does not need to receive, starting and stopping the bus is unnecessary. If this bus needs to receive, the receive options need to be configured.");
-
-            await CreateOrUpdatePublishEndpointAsync(null);
-            await CreateOrUpdateReceivingEndpointAsync();
-            //only start if there is a consumer
-            //if (subscriptionClient == null) subscriptionClient = new SubscriptionClient(connectionString, TopicName, "receivername");
+            subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
             subscriptionClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(message.GetMessageBody(), cancellationToken),
+                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, MessageTypeNames), cancellationToken),
                     new MessageHandlerOptions((arg) => { return Task.CompletedTask; }) { });
+
+            return Task.CompletedTask;
+
+            object GetMessageBody(ServiceBusMessage message, IMessageTypeNames messageTypeNames)
+            {
+                var messageTypeName = message.UserProperties[UserProperties.MessageTypeKey].ToString();
+                var type = messageTypeNames.MessageTypeNameToType(messageTypeName);
+                return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Body), type);
+            }
         }
 
-        public Task StopAsync() => subscriptionClient?.CloseAsync() ?? Task.CompletedTask;
-
-        public async Task CreateOrUpdateReceivingEndpointAsync()
-        {
-            var events = handlingEventMessageTypes;
-
-            var context = new AuthenticationContext($"https://login.microsoftonline.com/{configuration.TenantId}");
-
-            var result = await context.AcquireTokenAsync(
-                "https://management.core.windows.net/",
-                new ClientCredential(configuration.ClientId, configuration.ClientSecret)
-            );
-
-            var creds = new TokenCredentials(result.AccessToken);
-            var sbClient = new ServiceBusManagementClient(creds)
-            {
-                SubscriptionId = configuration.SubscriptionId
-            };
-
-            var serviceBusSubscription = new SBSubscription { };
-
-            await sbClient.Subscriptions.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                TopicName,
-                configuration.ReceiveOptions.QueueName,
-                serviceBusSubscription);
-
-            var eventMessageFilter = new Rule
-            {
-                SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
-                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", events)})")
-            };
-
-            await sbClient.Rules.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                TopicName,
-                configuration.ReceiveOptions.QueueName,
-                nameof(eventMessageFilter),
-                eventMessageFilter);
-
-            var commandMessageFilter = new Rule
-            {
-                SqlFilter = new Microsoft.Azure.Management.ServiceBus.Models.SqlFilter(
-                    $"user.{UserProperties.DestinationQueueKey}='{configuration.ReceiveOptions.QueueName}'")
-            };
-            await sbClient.Rules.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                TopicName,
-                configuration.ReceiveOptions.QueueName,
-                nameof(commandMessageFilter),
-                commandMessageFilter);
-        }
-
-        public void SetMessageHandlerExecutor(MessageHandlerExecutor messageHandlerExecutor) => this.messageHandlerExecutor = messageHandlerExecutor;
-        public void SetHandlingEventMessageTypes(string[] handlingEventMessageTypes) => this.handlingEventMessageTypes = handlingEventMessageTypes;
+        public Task StopReceivingMessages() => subscriptionClient?.CloseAsync() ?? Task.CompletedTask;
     }
 }

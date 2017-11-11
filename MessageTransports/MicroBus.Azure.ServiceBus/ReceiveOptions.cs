@@ -1,10 +1,11 @@
 ﻿using System;
+using Microsoft.Azure.Management.ServiceBus.Models;
+
 namespace MicroBus
 {
     public class ReceiveOptions
     {
         public string QueueName { get; set; }
-        //queue/subscription settings
-
+        public SBSubscription SBSubscription { get; set; }
     }
 }

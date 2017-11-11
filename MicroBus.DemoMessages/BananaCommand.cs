@@ -2,7 +2,7 @@
 
 namespace MicroBus.DemoMessages
 {
-    public class TestEvent2Message
+    public class BananaCommand
     {
         public string Text
         {

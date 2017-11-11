@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace MicroBus.DemoMessages
+namespace MicroBus.DemoMessages.Events
 {
-    public class TestEventMessage
+    public class Cat
     {
         public string Text
         {
