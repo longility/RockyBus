@@ -14,6 +14,11 @@ namespace MicroBus.UnitTests.DependencyResolvers
         
     }
 
+    public class RottenAppleCommandHandler : IMessageHandler<AppleCommand>
+    {
+        public Task Handle(AppleCommand message) => throw new Exception("Rotten Apple");
+    }
+
     public abstract class BaseEventHandler<T> : IMessageHandler<T>
     {
         public Task Handle(T message) => Task.CompletedTask;

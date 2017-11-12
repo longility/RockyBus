@@ -18,6 +18,7 @@ namespace MicroBus
         private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration { };
         private SubscriptionClient subscriptionClient;
         private TopicClient topicClient;
+
         public IMessageTypeNames MessageTypeNames { get; set; }
 
         public bool IsPublishAndSendOnly => string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName);
@@ -54,14 +55,15 @@ namespace MicroBus
             subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
             subscriptionClient.RegisterMessageHandler(
                 (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, MessageTypeNames), cancellationToken),
-                    new MessageHandlerOptions((arg) => { return Task.CompletedTask; }) { });
+                new MessageHandlerOptions(_ => Task.CompletedTask)
+                { });
 
             return Task.CompletedTask;
 
             object GetMessageBody(ServiceBusMessage message, IMessageTypeNames messageTypeNames)
             {
                 var messageTypeName = message.UserProperties[UserProperties.MessageTypeKey].ToString();
-                var type = messageTypeNames.MessageTypeNameToType(messageTypeName);
+                var type = messageTypeNames.GetTypeByMessageTypeName(messageTypeName);
                 return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Body), type);
             }
         }
