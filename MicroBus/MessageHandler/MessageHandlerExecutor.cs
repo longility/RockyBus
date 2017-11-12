@@ -8,10 +8,12 @@ namespace MicroBus
     {
         private readonly IDependencyResolver dependencyResolver;
         private readonly MessageHandlerTypeCreator creator = new MessageHandlerTypeCreator();
+        private readonly Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler;
 
-        public MessageHandlerExecutor(IDependencyResolver dependencyResolver)
+        public MessageHandlerExecutor(IDependencyResolver dependencyResolver, Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler = null)
         {
             this.dependencyResolver = dependencyResolver;
+            this.messageHandlingExceptionHandler = messageHandlingExceptionHandler ?? (_ => Task.CompletedTask);
         }
 
         public Task Execute(object message, CancellationToken cancellationToken)
@@ -23,8 +25,19 @@ namespace MicroBus
                 var messageHandler = scope.Resolve(messageHandlerType);
                 if (messageHandler == null) throw new TypeAccessException($"The type {messageHandlerType.Name} is not registered to the container");
                 var method = messageHandlerType.GetMethod("Handle");
-                return method.Invoke(messageHandler, new[] { message }) as Task;
+                try
+                {
+                    return method.Invoke(messageHandler, new[] { message }) as Task;
+                }
+                catch(Exception e){
+                    return messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
+                    {
+                        MessageHandlerType = messageHandlerType,
+                        Exception = e.InnerException
+                    });
+                }
             }
         }
+
     }
 }

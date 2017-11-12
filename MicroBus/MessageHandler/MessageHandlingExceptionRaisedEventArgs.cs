@@ -1,10 +1,9 @@
 ﻿using System;
-namespace MicroBus.MessageHandler
+namespace MicroBus
 {
     public class MessageHandlingExceptionRaisedEventArgs
     {
-        public MessageHandlingExceptionRaisedEventArgs()
-        {
-        }
+        public Type MessageHandlerType { get; internal set; }
+        public Exception Exception { get; internal set; }
     }
 }

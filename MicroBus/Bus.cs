@@ -10,13 +10,16 @@ namespace MicroBus
         readonly IMessageTransport busTransport;
         readonly IDependencyResolver dependencyResolver;
         readonly BusMessages busMessages;
+        readonly Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler;
         bool started = false;
 
-        public Bus(IMessageTransport busTransport, IDependencyResolver dependencyResolver, MessageScanRules rules)
+        public Bus(IMessageTransport busTransport, IDependencyResolver dependencyResolver, MessageScanRules rules, 
+                   Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler = null)
         {
             this.busTransport = busTransport;
             this.dependencyResolver = dependencyResolver;
             this.busMessages = new BusMessages(rules);
+            this.messageHandlingExceptionHandler = messageHandlingExceptionHandler;
         }
 
         public Task Publish<T>(T eventMessage)
@@ -42,7 +45,8 @@ namespace MicroBus
             if (!busTransport.IsPublishAndSendOnly)
             {
                 await busTransport.InitializeReceivingEndpoint();
-                await busTransport.StartReceivingMessages(new MessageHandlerExecutor(dependencyResolver));
+                var executor = new MessageHandlerExecutor(dependencyResolver, messageHandlingExceptionHandler);
+                await busTransport.StartReceivingMessages(executor);
             }
 
             started = true;

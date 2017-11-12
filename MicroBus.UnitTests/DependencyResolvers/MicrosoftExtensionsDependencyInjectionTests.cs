@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using MicroBus.DemoMessages;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,25 @@ namespace MicroBus.UnitTests.DependencyResolvers
             var task = executor.Execute(new BananaCommand(), new System.Threading.CancellationToken());
 
             task.IsCompleted.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task thrown_exception_in_message_handler_should_call_exception_handler()
+        {
+            Exception exception = null;
+            Func<MessageHandlingExceptionRaisedEventArgs, Task> exceptionHandler = a =>
+            {
+                exception = a.Exception;
+                return Task.CompletedTask;
+            };
+            var serviceProvider = new ServiceCollection()
+                .AddScoped<IMessageHandler<AppleCommand>, RottenAppleCommandHandler>()
+                .BuildServiceProvider();
+            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider), exceptionHandler);
+
+            await executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+
+            exception.Message.Should().Be("Rotten Apple");
         }
 
     }
