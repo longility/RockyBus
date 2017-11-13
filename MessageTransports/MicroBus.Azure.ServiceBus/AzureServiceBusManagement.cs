@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
@@ -48,7 +49,7 @@ namespace MicroBus.Azure.ServiceBus
             var eventMessageFilter = new Rule
             {
                 SqlFilter = new SqlFilter(
-                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames)})")
+                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames.Select(n => $"'{n}'"))})")
             };
 
             var commandMessageFilter = new Rule
