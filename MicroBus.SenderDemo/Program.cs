@@ -18,19 +18,22 @@ namespace MicroBus.SenderDemo
         static async Task<IBus> JupiterService()
         {
             var bus = new BusBuilder()
-                        .UseAzureServiceBus(
-                            "",
-                            configuration =>
-                            {
-                                configuration.SubscriptionId = SubscriptionId;
-                                configuration.TenantId = TenantId;
-                                configuration.ClientId = ClientId;
-                                configuration.ClientSecret = ClientSecret;
-
-                                configuration.PublishAndSendOptions
-                                             .MapCommandToQueue<AppleCommand>("saturn");
-                            })
-                        .Build();
+                .UseAzureServiceBus(
+                    ConnectionString,
+                    configuration =>
+                    {
+                        configuration.SubscriptionId = SubscriptionId;
+                        configuration.TenantId = TenantId;
+                        configuration.ClientId = ClientId;
+                        configuration.ClientSecret = ClientSecret;
+                        configuration.ResourceGroupName = ResourceGroupName;
+                        configuration.NamespaceName = NamespaceName;
+                        configuration.PublishAndSendOptions
+                                      .MapCommandToQueue<AppleCommand>("saturn");
+                    })
+                .DefineCommandScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Command"))
+                .DefineEventScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Event"))
+                .Build();
             await bus.Start();
 
             await bus.Publish(new CatEvent { Text = $"Meow published at {DateTimeOffset.UtcNow}" });
@@ -73,23 +76,26 @@ namespace MicroBus.SenderDemo
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection
-                .AddScoped<AppleCommandHandler>()
-                .AddScoped<CatEventHandler>()
+                .AddScoped<IMessageHandler<AppleCommand>, AppleCommandHandler>()
+                .AddScoped<IMessageHandler<CatEvent>, CatEventHandler>()
                 .AddSingleton(p =>
                     {
                         return new BusBuilder()
                             .UseAzureServiceBus(
-                                "",
+                                ConnectionString,
                                 configuration =>
                                 {
                                     configuration.SubscriptionId = SubscriptionId;
                                     configuration.TenantId = TenantId;
                                     configuration.ClientId = ClientId;
                                     configuration.ClientSecret = ClientSecret;
-
+                                    configuration.ResourceGroupName = ResourceGroupName;
+                                    configuration.NamespaceName = NamespaceName;
                                     configuration.ReceiveOptions.QueueName = "saturn";
                                 })
                             .UseMicrosoftDependencyInjection(p)
+                            .DefineCommandScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Command"))
+                            .DefineEventScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Event"))
                             .Build();
                     });
             var serviceProvider = serviceCollection.BuildServiceProvider();
