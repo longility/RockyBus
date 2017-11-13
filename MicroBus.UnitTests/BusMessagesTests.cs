@@ -1,3 +1,4 @@
+using System;
 using FluentAssertions;
 using MicroBus.DemoMessages.Commands;
 using MicroBus.DemoMessages.Events;
@@ -53,6 +54,15 @@ namespace MicroBus.UnitTests.Message
 
             var commandTypeName = busMessages.GetMessageTypeNameByType(typeof(Cat));
             commandTypeName.Should().Be(typeof(Cat).FullName);
-        }    
+        } 
+
+        [TestMethod]
+        public void no_messages_found_should_throw_exception() {
+            Action action = () => new BusMessages(
+                new MessageScanRules()
+                .DefineEventScanRuleWith(t => t.Namespace == "Blah")
+                .DefineCommandScanRuleWith(t => t.Namespace == "Blah"));
+            action.ShouldThrow<TypeLoadException>();
+        }
     }
 }

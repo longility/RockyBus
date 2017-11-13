@@ -23,6 +23,8 @@ namespace MicroBus.Message
             var commandTypes = scanner.CommandTypes;
             nameToMessageTypeCommandMap = commandTypes.ToDictionary(e => e.FullName);
             messageTypeToNameCommandMap = commandTypes.ToDictionary(e => e, e => e.FullName);
+
+            if (!eventTypes.Any() && !commandTypes.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
         }
 
         public IEnumerable<string> EventMessageTypeNames => nameToMessageTypeEventMap.Keys;
