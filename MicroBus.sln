@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MessageTransports", "Messag
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroBus.Azure.ServiceBus", "MessageTransports\MicroBus.Azure.ServiceBus\MicroBus.Azure.ServiceBus.csproj", "{8F0CAA10-2EDF-400F-B481-0CD34BFC68AA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{7D0EB0B8-DD7A-45E5-BCF1-C90896842365}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
