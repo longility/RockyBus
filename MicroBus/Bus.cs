@@ -44,6 +44,7 @@ namespace MicroBus
             await busTransport.InitializePublishingEndpoint();
             if (!busTransport.IsPublishAndSendOnly)
             {
+                if (dependencyResolver == null) throw new InvalidOperationException("Receiving bus requires message handlers. Add message handlers through dependency injection or BusBuilder.");
                 await busTransport.InitializeReceivingEndpoint();
                 var executor = new MessageHandlerExecutor(dependencyResolver, messageHandlingExceptionHandler);
                 await busTransport.StartReceivingMessages(executor);

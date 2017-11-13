@@ -9,6 +9,13 @@ namespace MicroBus.SenderDemo
 {
     class Program
     {
+        class BlahMessageHandler : IMessageHandler<AppleCommand>
+        {
+            public Task Handle(AppleCommand message)
+            {
+                throw new NotImplementedException();
+            }
+        }
         static async Task Main(string[] args)
         {
             var subscriptionId = "";
@@ -36,6 +43,8 @@ namespace MicroBus.SenderDemo
                                            .MapCommandToQueue<BananaCommand>("randomreceiver");
                             })
                         .UseMicrosoftDependencyInjection(p)
+                        .AddMessageHandler(() => new BlahMessageHandler()) //IMessageHandler<Message>,new() (cannot have duplicate handlers on a message)
+
                         .Build();
                 });
             var bus = serviceProvider.GetService<IBus>();
@@ -47,11 +56,8 @@ namespace MicroBus.SenderDemo
             await bus.Send(new AppleCommand { Text = "This is command." });
             await bus.Send(new BananaCommand { Text = "This is command 2." });
 
-            //get default dependency resolver working for simple use case
-            //manually add handlers
             //samples
             //Retry policy
-            //Unit tests
             //Test different .net frameworks as consumer
             //GitHub
             //Documentation
