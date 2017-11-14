@@ -14,6 +14,8 @@ namespace MicroBus.SenderDemo
         private const string ClientId = "";
         private const string ClientSecret = "";
         private const string ConnectionString = "";
+        private const string ResourceGroupName = "";
+        private const string NamespaceName = "";
 
         static async Task<IBus> JupiterService()
         {
