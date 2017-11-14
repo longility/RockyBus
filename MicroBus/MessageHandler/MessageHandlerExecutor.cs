@@ -16,7 +16,7 @@ namespace MicroBus
             this.messageHandlingExceptionHandler = messageHandlingExceptionHandler ?? (_ => Task.CompletedTask);
         }
 
-        public Task Execute(object message, CancellationToken cancellationToken)
+        public async Task Execute(object message, CancellationToken cancellationToken)
         {
             using (var scope = dependencyResolver.CreateScope())
             {
@@ -27,14 +27,15 @@ namespace MicroBus
                 var method = messageHandlerType.GetMethod("Handle");
                 try
                 {
-                    return method.Invoke(messageHandler, new[] { message }) as Task;
+                    await (method.Invoke(messageHandler, new[] { message }) as Task);
                 }
                 catch(Exception e){
-                    return messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
+                    await messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
                     {
                         MessageHandlerType = messageHandlerType,
                         Exception = e.InnerException
                     });
+                    throw;
                 }
             }
         }

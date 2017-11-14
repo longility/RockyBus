@@ -17,7 +17,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
                 .BuildServiceProvider();
             var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
 
-            Action action = () => executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+            Func<Task> action = () => executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
 
             action.ShouldThrow<TypeAccessException>();
         }
@@ -49,7 +49,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
         }
 
         [TestMethod]
-        public async Task thrown_exception_in_message_handler_should_call_exception_handler()
+        public void thrown_exception_in_message_handler_should_call_exception_handler_and_throw()
         {
             Exception exception = null;
             Func<MessageHandlingExceptionRaisedEventArgs, Task> exceptionHandler = a =>
@@ -62,8 +62,9 @@ namespace MicroBus.UnitTests.DependencyResolvers
                 .BuildServiceProvider();
             var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider), exceptionHandler);
 
-            await executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+            Func<Task> action = () => executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
 
+            action.ShouldThrow<Exception>();
             exception.Message.Should().Be("Rotten Apple");
         }
 
