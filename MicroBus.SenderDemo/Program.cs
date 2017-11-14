@@ -76,7 +76,7 @@ namespace MicroBus.SenderDemo
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection
-                .AddScoped<IMessageHandler<AppleCommand>, AppleCommandHandler>()
+                .AddScoped<IMessageHandler<AppleCommand>, RottenAppleCommandHandler>()
                 .AddScoped<IMessageHandler<CatEvent>, CatEventHandler>()
                 .AddSingleton(p =>
                     {
@@ -96,6 +96,7 @@ namespace MicroBus.SenderDemo
                             .UseMicrosoftDependencyInjection(p)
                             .DefineCommandScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Command"))
                             .DefineEventScanRuleWith(t => t.Namespace == "MicroBus.DemoMessages" && t.Name.EndsWith("Event"))
+                        .HandleMessageHandleExceptions(a => { Trace.WriteLine(a.Exception.Message); return Task.CompletedTask; })
                             .Build();
                     });
             var serviceProvider = serviceCollection.BuildServiceProvider();
