@@ -4,6 +4,6 @@ namespace MicroBus
 {
     public interface IMessageHandler<T>
     {
-        Task Handle(T message);
+        Task Handle(T message, IMessageContext messageContext);
     }
 }
