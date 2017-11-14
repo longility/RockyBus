@@ -18,6 +18,7 @@
     <ProjectReference Include="..\MicroBus\MicroBus.csproj" />
     <ProjectReference Include="..\DependencyResolvers\MicroBus.Microsoft.Extensions.DependencyInjection\MicroBus.Microsoft.Extensions.DependencyInjection.csproj" />
     <ProjectReference Include="..\MicroBus.DemoMessages\MicroBus.DemoMessages.csproj" />
+    <ProjectReference Include="..\MicroBus.Abstractions\MicroBus.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DependencyResolvers\" />

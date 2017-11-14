@@ -54,7 +54,7 @@ namespace MicroBus
         {
             subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
             subscriptionClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, MessageTypeNames), cancellationToken),
+                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, MessageTypeNames), new AzureServiceBusMessageContext(message), cancellationToken),
                 new MessageHandlerOptions(_ => Task.CompletedTask)
                 { });
 

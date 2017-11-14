@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\MicroBus\MicroBus.csproj" />
+    <ProjectReference Include="..\..\MicroBus.Abstractions\MicroBus.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="MicrosoftAzureServiceBusExtensions.cs" />

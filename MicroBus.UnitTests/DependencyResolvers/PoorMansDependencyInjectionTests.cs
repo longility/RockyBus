@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MicroBus.DemoMessages;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
 namespace MicroBus.UnitTests.DependencyResolvers
 {
@@ -14,7 +15,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
         {
             var executor = new MessageHandlerExecutor(new PoorMansDependencyInjection());
 
-            Func<Task> action = () => executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
 
             action.ShouldThrow<TypeAccessException>();
         }
@@ -26,7 +27,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
             dependencyInjection.AddMessageHandler(() => new AppleCommandHandler());
             var executor = new MessageHandlerExecutor(dependencyInjection);
 
-            var task = executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+            var task = executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
 
             task.IsCompleted.Should().BeTrue();
         }
@@ -38,7 +39,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
             dependencyInjection.AddMessageHandler(() => new BananaCommandHandler());
             var executor = new MessageHandlerExecutor(dependencyInjection);
 
-            var task = executor.Execute(new BananaCommand(), new System.Threading.CancellationToken());
+            var task = executor.Execute(new BananaCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
 
             task.IsCompleted.Should().BeTrue();
         }
@@ -56,7 +57,7 @@ namespace MicroBus.UnitTests.DependencyResolvers
             dependencyInjection.AddMessageHandler(() => new RottenAppleCommandHandler());
             var executor = new MessageHandlerExecutor(dependencyInjection, exceptionHandler);
 
-            Func<Task> action = () => executor.Execute(new AppleCommand(), new System.Threading.CancellationToken());
+            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
 
             action.ShouldThrow<Exception>();
             exception.Message.Should().Be("Rotten Apple");
