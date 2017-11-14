@@ -5,15 +5,24 @@ namespace MicroBus
 {
     public class AzureServiceBusConfiguration
     {
-        public string SubscriptionId { get; set; }
-        public string TenantId { get; set; }
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
+        public void SetManagementSettings(string subscriptionId, string tenantId, string clientId, string clientSecret, string resourceGroupName, string namespaceName) 
+        {
+            SubscriptionId = subscriptionId;
+            TenantId = tenantId;
+            ClientId = clientId;
+            ClientSecret = clientSecret;
+            ResourceGroupName = resourceGroupName;
+            NamespaceName = namespaceName;
+        }
 
-        public string ResourceGroupName { get; set; }
-        public string NamespaceName { get; set; }
-
-        public PublishAndSendOptions PublishAndSendOptions { get; private set; } = new PublishAndSendOptions();
-        public ReceiveOptions ReceiveOptions { get; private set; } = new ReceiveOptions();
+        internal string SubscriptionId { get; private set; }
+        internal string TenantId { get; private set; }
+        internal string ClientId { get; private set; }
+        internal string ClientSecret { get; private set; }
+		
+        internal string ResourceGroupName { get; private set; }
+        internal string NamespaceName { get; private set; }
+        public PublishAndSendOptions PublishAndSendOptions { get; } = new PublishAndSendOptions();
+        public ReceiveOptions ReceiveOptions { get; } = new ReceiveOptions();
     }
 }
