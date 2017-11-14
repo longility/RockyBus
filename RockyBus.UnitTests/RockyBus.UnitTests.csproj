@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="FluentAssertions" Version="4.19.4" />
+    <PackageReference Include="NSubstitute" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RockyBus\RockyBus.csproj" />
+    <ProjectReference Include="..\DependencyResolvers\RockyBus.Microsoft.Extensions.DependencyInjection\RockyBus.Microsoft.Extensions.DependencyInjection.csproj" />
+    <ProjectReference Include="..\RockyBus.DemoMessages\RockyBus.DemoMessages.csproj" />
+    <ProjectReference Include="..\RockyBus.Abstractions\RockyBus.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DependencyResolvers\" />
+  </ItemGroup>
+</Project>
