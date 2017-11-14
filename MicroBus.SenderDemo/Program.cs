@@ -24,12 +24,7 @@ namespace MicroBus.SenderDemo
                     ConnectionString,
                     configuration =>
                     {
-                        configuration.SubscriptionId = SubscriptionId;
-                        configuration.TenantId = TenantId;
-                        configuration.ClientId = ClientId;
-                        configuration.ClientSecret = ClientSecret;
-                        configuration.ResourceGroupName = ResourceGroupName;
-                        configuration.NamespaceName = NamespaceName;
+                        configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
                         configuration.PublishAndSendOptions
                                       .MapCommandToQueue<AppleCommand>("saturn");
                     })
@@ -38,17 +33,17 @@ namespace MicroBus.SenderDemo
                 .Build();
             await bus.Start();
 
-            await bus.Publish(new CatEvent { Text = $"Meow published at {DateTimeOffset.UtcNow}" });
-            await bus.Send(new AppleCommand { Text = $"jupiter to saturn sent at {DateTimeOffset.UtcNow}" });
+            await bus.Publish(new CatEvent { Text = "Meow" });
+            await bus.Send(new AppleCommand { Text = "jupiter to saturn" });
 
             return bus;
         }
 
         class AppleCommandHandler : IMessageHandler<AppleCommand>
         {
-            public Task Handle(AppleCommand message)
+            public Task Handle(AppleCommand message, IMessageContext messageContext)
             {
-                Trace.WriteLine($"AppleCommand received with message '{message.Text}' at {DateTimeOffset.UtcNow}");
+                Trace.WriteLine($"AppleCommand received with message '{message.Text}' at {DateTimeOffset.UtcNow} (enqueued at {messageContext.EnqueueTime})");
 
                 return Task.CompletedTask;
             }
@@ -56,19 +51,19 @@ namespace MicroBus.SenderDemo
 
         class RottenAppleCommandHandler : IMessageHandler<AppleCommand>
         {
-            public Task Handle(AppleCommand message)
+            public Task Handle(AppleCommand message, IMessageContext messageContext)
             {
 
-                Trace.WriteLine($"AppleCommand received with message '{message.Text}' at {DateTimeOffset.UtcNow}");
+                Trace.WriteLine($"AppleCommand received with message '{message.Text}' at {DateTimeOffset.UtcNow} (enqueued at {messageContext.EnqueueTime})");
                 throw new Exception("Rotten Apple");
             }
         }
 
         class CatEventHandler : IMessageHandler<CatEvent>
         {
-            public Task Handle(CatEvent message)
+            public Task Handle(CatEvent message, IMessageContext messageContext)
             {
-                Trace.WriteLine($"CatEvent received with message '{message.Text}' at {DateTimeOffset.UtcNow}");
+                Trace.WriteLine($"CatEvent received with message '{message.Text}' at {DateTimeOffset.UtcNow} (enqueued at {messageContext.EnqueueTime})");
 
                 return Task.CompletedTask;
             }
@@ -87,12 +82,7 @@ namespace MicroBus.SenderDemo
                                 ConnectionString,
                                 configuration =>
                                 {
-                                    configuration.SubscriptionId = SubscriptionId;
-                                    configuration.TenantId = TenantId;
-                                    configuration.ClientId = ClientId;
-                                    configuration.ClientSecret = ClientSecret;
-                                    configuration.ResourceGroupName = ResourceGroupName;
-                                    configuration.NamespaceName = NamespaceName;
+                                    configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
                                     configuration.ReceiveOptions.QueueName = "saturn";
                                 })
                             .UseMicrosoftDependencyInjection(p)
