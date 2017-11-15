@@ -24,15 +24,19 @@ namespace RockyBus.Azure.ServiceBus
 
             if (configuration.PublishAndSendOptions.SBTopic == null)
             {
-                var topic = await sbManagementClient.Topics.GetAsync(configuration.ResourceGroupName, configuration.NamespaceName, topicName);
-                if (topic != null) return;
+                try
+                {
+                    var topic = await sbManagementClient.Topics.GetAsync(configuration.ResourceGroupName, configuration.NamespaceName, topicName);
+                    if (topic != null) return;
+                }
+                catch(ErrorResponseException e) when (e.Response.StatusCode == System.Net.HttpStatusCode.NotFound) {}
             }
 
             await sbManagementClient.Topics.CreateOrUpdateAsync(
                  configuration.ResourceGroupName,
                  configuration.NamespaceName,
                  topicName,
-                 configuration.PublishAndSendOptions.SBTopic ?? new SBTopic());
+                configuration.PublishAndSendOptions.SBTopic ?? new SBTopic { EnablePartitioning = true });
         }
 
         public async Task InitializeReceivingEndpoint(string topicName, IEnumerable<string> eventMessageTypeNames)
