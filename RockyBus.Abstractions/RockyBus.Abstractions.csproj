@@ -10,7 +10,7 @@
     <PackageReleaseNotes>Initial IBus, IMessageHandler, IMessageContext</PackageReleaseNotes>
     <Copyright>Copyright 2017 RockyBus</Copyright>
     <PackageTags>RockyBus</PackageTags>
-    <RepositoryUrl>https://github.com/longility/RockyBus</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/longility/RockyBus</PackageProjectUrl>
   </PropertyGroup>
 
 </Project>
