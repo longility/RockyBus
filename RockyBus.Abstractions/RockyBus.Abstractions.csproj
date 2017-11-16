@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>RockyBus.Abstractions</PackageId>
+    <PackageVersion></PackageVersion>
     <Authors>Long Mai</Authors>
     <Description>RockyBus's abstraction project for cleaner dependency referencing.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
