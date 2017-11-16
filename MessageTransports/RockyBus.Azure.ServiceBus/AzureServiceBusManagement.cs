@@ -5,6 +5,7 @@ using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
+using System;
 
 namespace RockyBus.Azure.ServiceBus
 {
@@ -20,23 +21,19 @@ namespace RockyBus.Azure.ServiceBus
 
         public async Task InitializePublishingEndpoint(string topicName)
         {
+            if (configuration.PublishAndSendOptions.SBTopic == null) return;
+
             var sbManagementClient = await GetServiceBusManagementClient();
 
-            if (configuration.PublishAndSendOptions.SBTopic == null)
+            try
             {
-                try
-                {
-                    var topic = await sbManagementClient.Topics.GetAsync(configuration.ResourceGroupName, configuration.NamespaceName, topicName);
-                    if (topic != null) return;
-                }
-                catch(ErrorResponseException e) when (e.Response.StatusCode == System.Net.HttpStatusCode.NotFound) {}
+                await sbManagementClient.Topics.CreateOrUpdateAsync(
+                     configuration.ResourceGroupName,
+                     configuration.NamespaceName,
+                     topicName,
+                     configuration.PublishAndSendOptions.SBTopic);
             }
-
-            await sbManagementClient.Topics.CreateOrUpdateAsync(
-                 configuration.ResourceGroupName,
-                 configuration.NamespaceName,
-                 topicName,
-                configuration.PublishAndSendOptions.SBTopic ?? new SBTopic { EnablePartitioning = true });
+            catch (Exception e) { throw new Exception("There are limitations to updating a service bus topic. An option is to consider deleting the topic before trying again.", e); }
         }
 
         public async Task InitializeReceivingEndpoint(string topicName, IEnumerable<string> eventMessageTypeNames)
