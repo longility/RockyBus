@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>RockyBus.Abstractions</PackageId>
+    <PackageVersion>0.1.0</PackageVersion>
+    <Authors>Long Mai</Authors>
+    <Description>RockyBus's abstraction project for cleaner dependency referencing.</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>Initial IBus, IMessageHandler, IMessageContext</PackageReleaseNotes>
+    <Copyright>Copyright 2017 RockyBus</Copyright>
+    <PackageTags>RockyBus</PackageTags>
   </PropertyGroup>
 
 </Project>
