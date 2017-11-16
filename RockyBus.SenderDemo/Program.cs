@@ -9,13 +9,13 @@ namespace RockyBus.SenderDemo
 {
     class Program
     {
-        private const string SubscriptionId = ""; //Resource group Subscription ID
-        private const string TenantId = ""; //AAD -> Properties -> Directory ID
-        private const string ClientId = ""; //Application ID
-        private const string ClientSecret = ""; //API Access -> Key's Value
-        private const string ConnectionString = "";
-        private const string ResourceGroupName = "";
-        private const string NamespaceName = "";
+        const string SubscriptionId = ""; //Resource group Subscription ID
+        const string TenantId = ""; //AAD -> Properties -> Directory ID
+        const string ClientId = ""; //Application ID
+        const string ClientSecret = ""; //API Access -> Key's Value
+        const string ConnectionString = "";
+        const string ResourceGroupName = "";
+        const string NamespaceName = "";
 
         static async Task<IBus> JupiterService()
         {
@@ -26,7 +26,8 @@ namespace RockyBus.SenderDemo
                     {
                         configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
                         configuration.PublishAndSendOptions
-                                      .MapCommandToQueue<AppleCommand>("saturn");
+                                     .AttemptCreateTopicWith(new Microsoft.Azure.Management.ServiceBus.Models.SBTopic { EnablePartitioning = true })
+                                     .MapCommandToQueue<AppleCommand>("saturn");
                     })
                 .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Command"))
                 .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Event"))
