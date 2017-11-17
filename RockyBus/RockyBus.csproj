@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>RockyBus</PackageId>
+    <PackageVersion></PackageVersion>
+    <Authors>Long Mai</Authors>
+    <Description>An extensible .NET Standard message bus library for simple needs.</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <Copyright>Copyright 2017 RockyBus</Copyright>
+    <PackageTags>RockyBus</PackageTags>
+    <PackageProjectUrl>https://github.com/longility/RockyBus</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>RockyBus.Azure.ServiceBus</PackageId>
+    <PackageVersion></PackageVersion>
+    <Authors>Long Mai</Authors>
+    <Description>Azure.ServiceBus transport for RockyBus.</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <Copyright>Copyright 2017 RockyBus</Copyright>
+    <PackageTags>RockyBus</PackageTags>
+    <PackageProjectUrl>https://github.com/longility/RockyBus</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
