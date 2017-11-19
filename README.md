@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/35pu1v3retdxwhw9/branch/master?svg=true)](https://ci.appveyor.com/project/longility/rockybus/branch/master)
+
 # RockyBus
 A .NET Standard message bus library that is extensible for simple needs. 
 
