@@ -11,7 +11,7 @@ See demo project for now.
 - More simple projects that only requires simple, common messaging patterns.
 
 ## Supported Message Transports
-- Azure Service Bus
+- Azure Service Bus - https://github.com/Azure-Samples/service-bus-dotnet-management
 
 ## Supported Patterns
 - PubSub Pattern
