@@ -3,8 +3,8 @@ namespace RockyBus.Message
 {
     class MessageScanRules
     {
-        private Func<Type, bool> isAnEvent = type => type.FullName.EndsWith("Event");
-        private Func<Type, bool> isACommand = type => type.FullName.EndsWith("Command");
+        private Func<Type, bool> isAnEvent = type => false;
+        private Func<Type, bool> isACommand = type => false;
 
         public MessageScanRules DefineEventScanRuleWith(Func<Type, bool> isAnEvent)
         {
