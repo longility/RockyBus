@@ -1,6 +1,5 @@
 ﻿using System;
 using RockyBus.Message;
-using RockyBus.Abstractions;
 using System.Threading.Tasks;
 
 namespace RockyBus
