@@ -21,7 +21,7 @@ namespace RockyBus.Message
 
         public void Scan()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(e => !e.IsDynamic && !e.GlobalAssemblyCache).Except(new[] { Assembly.GetExecutingAssembly() }).ToList();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(e => !e.IsDynamic).Except(new[] { Assembly.GetExecutingAssembly() }).ToList();
             foreach (var assembly in assemblies)
             {
                 foreach (var type in assembly.GetExportedTypes())
