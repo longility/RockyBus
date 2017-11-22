@@ -33,6 +33,7 @@ namespace RockyBus
                     await messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
                     {
                         MessageHandlerType = messageHandlerType,
+                        Message = message,
                         Exception = e.InnerException
                     });
                     throw;
