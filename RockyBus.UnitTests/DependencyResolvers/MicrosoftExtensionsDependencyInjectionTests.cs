@@ -9,65 +9,56 @@ using NSubstitute;
 namespace RockyBus.UnitTests.DependencyResolvers
 {
     [TestClass]
-    public class MicrosoftExtensionsDependencyInjectionTests
+    public class MicrosoftExtensionsDependencyInjectionTests : BaseDependencyResolverTests
     {
         [TestMethod]
-        public void executing_message_handler_without_registering_should_throw_an_exception()
+        public void MicrosoftExtensionsDependencyInjection_handling_message_without_registering_should_throw_an_exception()
         {
-            var serviceProvider = new ServiceCollection()
-                .BuildServiceProvider();
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
-
-            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            action.ShouldThrow<TypeAccessException>();
+            given_no_message_handlers();
+            when_handling_message();
+            then_should_be_unsuccessful();
         }
 
         [TestMethod]
-        public void register_message_handler_as_direct_implementation_should_resolve_and_execute()
+        public void MicrosoftExtensionsDependencyInjection_handling_message_for_direct_implementation_should_resolve_and_execute()
         {
-            var serviceProvider = new ServiceCollection()
-                .AddScoped<IMessageHandler<AppleCommand>, AppleCommandHandler>()
-                .BuildServiceProvider();
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
-
-            var task = executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            task.IsCompleted.Should().BeTrue();
+            given_direct_implementation_of_IMessageHandler();
+            when_handling_message();
+            then_should_be_successful();
         }
 
         [TestMethod]
-        public void register_message_handler_as_an_indirect_implementation_should_resolve_and_execute()
+        public void MicrosoftExtensionsDependencyInjection_handling_message_for_indirect_implementation_should_resolve_and_execute()
         {
-            var serviceProvider = new ServiceCollection()
-                .AddScoped<IMessageHandler<BananaCommand>, BananaCommandHandler>()
-                .BuildServiceProvider();
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider));
-
-            var task = executor.Execute(new BananaCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            task.IsCompleted.Should().BeTrue();
+            given_indirect_implementation_of_IMessageHandler();
+            when_handling_message();
+            then_should_be_successful();
         }
 
-        [TestMethod]
-        public void thrown_exception_in_message_handler_should_call_exception_handler_and_throw()
+        protected override void given_no_message_handlers()
         {
-            Exception exception = null;
-            Func<MessageHandlingExceptionRaisedEventArgs, Task> exceptionHandler = a =>
-            {
-                exception = a.Exception;
-                return Task.CompletedTask;
-            };
             var serviceProvider = new ServiceCollection()
-                .AddScoped<IMessageHandler<AppleCommand>, RottenAppleCommandHandler>()
                 .BuildServiceProvider();
-            var executor = new MessageHandlerExecutor(new MicrosoftDependencyInjectionDependencyResolver(serviceProvider), exceptionHandler);
-
-            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            action.ShouldThrow<Exception>();
-            exception.Message.Should().Be("Rotten Apple");
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            given_dependency_resolver(dependencyResolver);
         }
 
+        protected override void given_direct_implementation_of_IMessageHandler()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddScoped<IMessageHandler<AppleCommand>, DirectAppleCommandHandler>()
+                .BuildServiceProvider();
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            given_dependency_resolver(dependencyResolver);
+        }
+
+        protected override void given_indirect_implementation_of_IMessageHandler()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddScoped<IMessageHandler<AppleCommand>, IndirectAppleCommandHandler>()
+                .BuildServiceProvider();
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            given_dependency_resolver(dependencyResolver);
+        }
     }
 }
