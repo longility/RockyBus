@@ -8,60 +8,50 @@ using NSubstitute;
 namespace RockyBus.UnitTests.DependencyResolvers
 {
     [TestClass]
-    public class PoorMansDependencyInjectionTests
+    public class PoorMansDependencyInjectionTests : BaseDependencyResolverTests
     {
         [TestMethod]
-        public void executing_message_handler_without_registering_should_throw_an_exception()
+        public void PoorMansDependencyInjection_handling_message_without_registering_should_throw_an_exception()
         {
-            var executor = new MessageHandlerExecutor(new PoorMansDependencyInjection());
-
-            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            action.ShouldThrow<TypeAccessException>();
+            given_no_message_handlers();
+            when_handling_message();
+            then_should_be_unsuccessful();
         }
 
         [TestMethod]
-        public void register_message_handler_as_direct_implementation_should_resolve_and_execute()
+        public void PoorMansDependencyInjection_handling_message_for_direct_implementation_should_resolve_and_execute()
         {
-            var dependencyInjection = new PoorMansDependencyInjection();
-            dependencyInjection.AddMessageHandler(() => new AppleCommandHandler());
-            var executor = new MessageHandlerExecutor(dependencyInjection);
-
-            var task = executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            task.IsCompleted.Should().BeTrue();
+            given_direct_implementation_of_IMessageHandler();
+            when_handling_message();
+            then_should_be_successful();
         }
 
         [TestMethod]
-        public void register_message_handler_as_an_indirect_implementation_should_resolve_and_execute()
+        public void PoorMansDependencyInjection_handling_message_for_indirect_implementation_should_resolve_and_execute()
         {
-            var dependencyInjection = new PoorMansDependencyInjection();
-            dependencyInjection.AddMessageHandler(() => new BananaCommandHandler());
-            var executor = new MessageHandlerExecutor(dependencyInjection);
-
-            var task = executor.Execute(new BananaCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            task.IsCompleted.Should().BeTrue();
+            given_indirect_implementation_of_IMessageHandler();
+            when_handling_message();
+            then_should_be_successful();
         }
 
-        [TestMethod]
-        public void thrown_exception_in_message_handler_should_call_exception_handler_and_throw()
+        protected override void given_no_message_handlers()
         {
-            Exception exception = null;
-            Func<MessageHandlingExceptionRaisedEventArgs, Task> exceptionHandler = a =>
-            {
-                exception = a.Exception;
-                return Task.CompletedTask;
-            };
             var dependencyInjection = new PoorMansDependencyInjection();
-            dependencyInjection.AddMessageHandler(() => new RottenAppleCommandHandler());
-            var executor = new MessageHandlerExecutor(dependencyInjection, exceptionHandler);
-
-            Func<Task> action = () => executor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
-
-            action.ShouldThrow<Exception>();
-            exception.Message.Should().Be("Rotten Apple");
+            given_dependency_resolver(dependencyInjection);
         }
 
+        protected override void given_direct_implementation_of_IMessageHandler()
+        {
+            var dependencyInjection = new PoorMansDependencyInjection();
+            dependencyInjection.AddMessageHandler(() => new DirectAppleCommandHandler());
+            given_dependency_resolver(dependencyInjection);
+        }
+
+        protected override void given_indirect_implementation_of_IMessageHandler()
+        {
+            var dependencyInjection = new PoorMansDependencyInjection();
+            dependencyInjection.AddMessageHandler(() => new IndirectAppleCommandHandler());
+            given_dependency_resolver(dependencyInjection);
+        }
     }
 }

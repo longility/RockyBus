@@ -4,12 +4,12 @@ using RockyBus.DemoMessages;
 
 namespace RockyBus.UnitTests.DependencyResolvers
 {
-    public class AppleCommandHandler : IMessageHandler<AppleCommand>
+    public class DirectAppleCommandHandler : IMessageHandler<AppleCommand>
     {
         public Task Handle(AppleCommand message, IMessageContext messageContext) => Task.CompletedTask;
     }
 
-    public class BananaCommandHandler : BaseEventHandler<BananaCommand> 
+    public class IndirectAppleCommandHandler : BaseEventHandler<AppleCommand> 
     {
         
     }
