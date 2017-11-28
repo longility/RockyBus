@@ -62,7 +62,7 @@ namespace RockyBus.UnitTests
             var message = new CatEvent();
 
             await bus.Publish(message);
-            await messageTransport.Received().Publish(message, bus.GetMessageTypeNameByType(message.GetType()));
+            await messageTransport.Received().Publish(message, bus.MessageTypeToNamePublishingEventMap[message.GetType()]);
         }
 
         [TestMethod]
@@ -72,7 +72,7 @@ namespace RockyBus.UnitTests
             var message = new AppleCommand();
 
             await bus.Send(message);
-            await messageTransport.Received().Send(message, bus.GetMessageTypeNameByType(message.GetType()));
+            await messageTransport.Received().Send(message, bus.MessageTypeToNameSendingCommandMap[message.GetType()]);
         }
 
         [TestMethod]

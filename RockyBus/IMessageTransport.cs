@@ -5,7 +5,7 @@ namespace RockyBus
 {
     public interface IMessageTransport
     {
-        IMessageTypeNames MessageTypeNames { get; set; }
+        IReceivingMessageTypeNames ReceivingMessageTypeNames { get; set; }
         bool IsPublishAndSendOnly { get; }
 
         Task InitializePublishingEndpoint();

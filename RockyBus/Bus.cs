@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using RockyBus.Message;
 
@@ -17,7 +18,7 @@ namespace RockyBus
         {
             this.busTransport = busTransport;
             this.dependencyResolver = dependencyResolver;
-            this.busMessages = new BusMessages(rules);
+            this.busMessages = new BusMessages(rules, dependencyResolver);
             this.messageHandlingExceptionHandler = messageHandlingExceptionHandler;
         }
 
@@ -25,21 +26,21 @@ namespace RockyBus
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
-            if (!busMessages.IsAnEvent(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return busTransport.Publish(eventMessage, busMessages.GetMessageTypeNameByType(type));
+            if (!busMessages.IsPublishable(type)) throw BusMessages.CreateMessageNotFoundException(type);
+            return busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type]);
         }
 
         public Task Send<T>(T commandMessage)
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
-            if (!busMessages.IsACommand(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return busTransport.Send(commandMessage, busMessages.GetMessageTypeNameByType(type));
+            if (!busMessages.IsSendable(type)) throw BusMessages.CreateMessageNotFoundException(type);
+            return busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type]);
         }
 
         public async Task Start()
         {
-            busTransport.MessageTypeNames = busMessages;
+            busTransport.ReceivingMessageTypeNames = busMessages;
             await busTransport.InitializePublishingEndpoint();
             if (!busTransport.IsPublishAndSendOnly)
             {
@@ -57,7 +58,7 @@ namespace RockyBus
             return busTransport.StopReceivingMessages();
         }
 
-        internal string GetMessageTypeNameByType(Type type) => busMessages.GetMessageTypeNameByType(type);
-        internal Type GetTypeByMessageTypeName(string messageTypeName) => busMessages.GetTypeByMessageTypeName(messageTypeName);
+        internal IDictionary<Type, string> MessageTypeToNamePublishingEventMap => busMessages.MessageTypeToNamePublishingEventMap;
+        internal IDictionary<Type, string> MessageTypeToNameSendingCommandMap => busMessages.MessageTypeToNameSendingCommandMap;
     }
 }
