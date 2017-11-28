@@ -9,7 +9,11 @@ namespace RockyBus
 
         public IResolverScope CreateScope() => poorMansResolverScope;
 
-        public void AddMessageHandler<T>(Func<IMessageHandler<T>> createMessageHandler) => poorMansResolverScope.AddMessageHandler(createMessageHandler);
+        public PoorMansDependencyInjection AddMessageHandler<T>(Func<IMessageHandler<T>> createMessageHandler)
+        {
+            poorMansResolverScope.AddMessageHandler(createMessageHandler);
+            return this;
+        }
     }
 
     internal class PoorMansResolverScope : IResolverScope

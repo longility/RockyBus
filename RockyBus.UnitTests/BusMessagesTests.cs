@@ -4,65 +4,84 @@ using RockyBus.DemoMessages.Commands;
 using RockyBus.DemoMessages.Events;
 using RockyBus.Message;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using System.Threading.Tasks;
 
 namespace RockyBus.UnitTests.Message
 {
     [TestClass]
     public class BusMessagesTests
     {
-        private static BusMessages busMessages = new BusMessages(
-                new MessageScanRules()
-                .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Events")
-                .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Commands"));
-        
         [TestMethod]
-        public void scan_bus_messages_should_find_events_and_commands()
+        public void bus_messages_should_send_only_commands_without_handler()
         {
-            busMessages.EventMessageTypeNames.Should().HaveCount(2);
-            busMessages.EventMessageTypeNames.Should().Contain(typeof(Cat).FullName);
-            busMessages.EventMessageTypeNames.Should().Contain(typeof(Dog).FullName);
-
-            busMessages.CommandMessageTypeNames.Should().HaveCount(2);
-            busMessages.CommandMessageTypeNames.Should().Contain(typeof(Apple).FullName);
-            busMessages.CommandMessageTypeNames.Should().Contain(typeof(Banana).FullName);
+            busMessages.IsSendable(typeof(Apple)).Should().BeTrue();
+            busMessages.IsSendable(typeof(Banana)).Should().BeFalse();
+            busMessages.IsSendable(typeof(Cat)).Should().BeFalse();
+            busMessages.IsSendable(typeof(Dog)).Should().BeFalse();
         }
 
         [TestMethod]
-        public void bus_messages_should_be_able_to_identify_messages()
+        public void bus_messages_should_publish_only_events_without_handler()
         {
-            busMessages.IsACommand(typeof(Apple)).Should().BeTrue();
-            busMessages.IsACommand(typeof(Cat)).Should().BeFalse();
-            busMessages.IsAnEvent(typeof(Apple)).Should().BeFalse();
-            busMessages.IsAnEvent(typeof(Cat)).Should().BeTrue();
+            busMessages.IsPublishable(typeof(Apple)).Should().BeFalse();
+            busMessages.IsPublishable(typeof(Banana)).Should().BeFalse();
+            busMessages.IsPublishable(typeof(Cat)).Should().BeTrue();
+            busMessages.IsPublishable(typeof(Dog)).Should().BeFalse();
         }
 
         [TestMethod]
-        public void bus_messages_should_translate_message_type_name_to_type()
+        public void bus_messages_should_translate_receiving_message_type_name_to_type()
         {
-            var eventType = busMessages.GetTypeByMessageTypeName(typeof(Apple).FullName);
-            eventType.Should().Be(typeof(Apple));
-
-            var commandType = busMessages.GetTypeByMessageTypeName(typeof(Cat).FullName);
-            commandType.Should().Be(typeof(Cat));
+            var eventType = busMessages.GetReceivingTypeByMessageTypeName(typeof(Banana).FullName);
+            eventType.Should().Be(typeof(Banana));
         }
 
         [TestMethod]
-        public void bus_messages_should_translate_type_to_message_type_name()
+        public void bus_messages_should_translate_type_to_publishing_event_type_name()
         {
-            var eventTypeName = busMessages.GetMessageTypeNameByType(typeof(Apple));
-            eventTypeName.Should().Be(typeof(Apple).FullName);
-
-            var commandTypeName = busMessages.GetMessageTypeNameByType(typeof(Cat));
-            commandTypeName.Should().Be(typeof(Cat).FullName);
-        } 
+            var eventTypeName = busMessages.MessageTypeToNamePublishingEventMap[typeof(Cat)];
+            eventTypeName.Should().Be(typeof(Cat).FullName);
+        }
 
         [TestMethod]
-        public void no_messages_found_should_throw_exception() {
+        public void bus_messages_should_translate_type_to_sending_command_type_name()
+        {
+            var commandTypeName = busMessages.MessageTypeToNameSendingCommandMap[typeof(Apple)];
+            commandTypeName.Should().Be(typeof(Apple).FullName);
+        }
+
+        [TestMethod]
+        public void no_messages_found_should_throw_exception()
+        {
             Action action = () => new BusMessages(
                 new MessageScanRules()
                 .DefineEventScanRuleWith(t => t.Namespace == "Blah")
-                .DefineCommandScanRuleWith(t => t.Namespace == "Blah"));
+                .DefineCommandScanRuleWith(t => t.Namespace == "Blah"), Substitute.For<IDependencyResolver>());
             action.ShouldThrow<TypeLoadException>();
         }
+
+        class BananaHandler : IMessageHandler<Banana>
+        {
+            public Task Handle(Banana message, IMessageContext messageContext)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        class DogHandler : IMessageHandler<Dog>
+        {
+            public Task Handle(Dog message, IMessageContext messageContext)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private static BusMessages busMessages = new BusMessages(
+                new MessageScanRules()
+                .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Events")
+                .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Commands"),
+                new PoorMansDependencyInjection().AddMessageHandler(() => new BananaHandler()).AddMessageHandler(() => new DogHandler()));
+
     }
 }

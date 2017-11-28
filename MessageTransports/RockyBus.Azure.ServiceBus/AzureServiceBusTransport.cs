@@ -19,7 +19,7 @@ namespace RockyBus
         private SubscriptionClient subscriptionClient;
         private TopicClient topicClient;
 
-        public IMessageTypeNames MessageTypeNames { get; set; }
+        public IReceivingMessageTypeNames ReceivingMessageTypeNames { get; set; }
 
         public bool IsPublishAndSendOnly => string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName);
 
@@ -37,7 +37,7 @@ namespace RockyBus
             topicClient = new TopicClient(connectionString, TopicName);
         }
 
-        public Task InitializeReceivingEndpoint() => azureServiceBusManagement.InitializeReceivingEndpoint(TopicName, MessageTypeNames.EventMessageTypeNames);
+        public Task InitializeReceivingEndpoint() => azureServiceBusManagement.InitializeReceivingEndpoint(TopicName, ReceivingMessageTypeNames.ReceivingEventMessageTypeNames);
 
         public Task Publish<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName);
         public Task Send<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName, true);
@@ -54,16 +54,16 @@ namespace RockyBus
         {
             subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
             subscriptionClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, MessageTypeNames), new AzureServiceBusMessageContext(message), cancellationToken),
+                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(message), cancellationToken),
                 new MessageHandlerOptions(_ => Task.CompletedTask)
                 { });
 
             return Task.CompletedTask;
 
-            object GetMessageBody(ServiceBusMessage message, IMessageTypeNames messageTypeNames)
+            object GetMessageBody(ServiceBusMessage message, IReceivingMessageTypeNames messageTypeNames)
             {
                 var messageTypeName = message.UserProperties[UserProperties.MessageTypeKey].ToString();
-                var type = messageTypeNames.GetTypeByMessageTypeName(messageTypeName);
+                var type = messageTypeNames.GetReceivingTypeByMessageTypeName(messageTypeName);
                 return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Body), type);
             }
         }
