@@ -34,7 +34,7 @@ namespace RockyBus
                     {
                         MessageHandlerType = messageHandlerType,
                         Message = message,
-                        Exception = e.InnerException
+                        Exception = e is System.Reflection.TargetInvocationException ? e.InnerException : e
                     });
                     throw;
                 }
