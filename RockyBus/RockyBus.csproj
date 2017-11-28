@@ -17,9 +17,6 @@
     <ProjectReference Include="..\RockyBus.Abstractions\RockyBus.Abstractions.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Class1.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="DependencyResolver\" />
     <Folder Include="MessageHandler\" />
     <Folder Include="Message\" />
