@@ -31,6 +31,25 @@ namespace RockyBus.UnitTests.Message
         }
 
         [TestMethod]
+        public void no_dependency_resolver_should_mark_as_either_sendable_or_publishable() {
+            var busMessages = new BusMessages(
+                new MessageScanRules()
+                .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Events")
+                .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages.Commands"),
+                null);
+
+            busMessages.IsSendable(typeof(Apple)).Should().BeTrue();
+            busMessages.IsSendable(typeof(Banana)).Should().BeTrue();
+            busMessages.IsSendable(typeof(Cat)).Should().BeFalse();
+            busMessages.IsSendable(typeof(Dog)).Should().BeFalse();
+
+            busMessages.IsPublishable(typeof(Apple)).Should().BeFalse();
+            busMessages.IsPublishable(typeof(Banana)).Should().BeFalse();
+            busMessages.IsPublishable(typeof(Cat)).Should().BeTrue();
+            busMessages.IsPublishable(typeof(Dog)).Should().BeTrue();
+        }
+
+        [TestMethod]
         public void bus_messages_should_translate_receiving_message_type_name_to_type()
         {
             var eventType = busMessages.GetReceivingTypeByMessageTypeName(typeof(Banana).FullName);
