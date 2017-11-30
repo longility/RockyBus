@@ -22,14 +22,33 @@ namespace RockyBus.Message
             var scanner = new MessageScanner(messageScanRules);
             scanner.Scan();
 
-            var eventTypes = scanner.EventTypes;
-            var commandTypes = scanner.CommandTypes;
-            if (!eventTypes.Any() && !commandTypes.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
+            if (!scanner.EventTypes.Any() && !scanner.CommandTypes.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
 
+            if (dependencyResolver == null) InitializeMapsWithoutDependencyResolver(scanner);
+            else InitializeMapsWithDependencyResolver(dependencyResolver, scanner);
+        }
+
+        private void InitializeMapsWithoutDependencyResolver(MessageScanner scanner)
+        {
+            foreach (var type in scanner.EventTypes)
+            {
+                nameToMessageTypePublishingEventMap.Add(type.FullName, type);
+                messageTypeToNamePublishingEventMap.Add(type, type.FullName);
+            }
+
+            foreach (var type in scanner.CommandTypes)
+            {
+                nameToMessageTypeSendingCommandMap.Add(type.FullName, type);
+                messageTypeToNameSendingCommandMap.Add(type, type.FullName);
+            }
+        }
+
+        private void InitializeMapsWithDependencyResolver(IDependencyResolver dependencyResolver, MessageScanner scanner)
+        {
             using (var resolver = dependencyResolver.CreateScope())
             {
                 var creator = new MessageHandlerTypeCreator();
-                foreach (var type in eventTypes)
+                foreach (var type in scanner.EventTypes)
                 {
                     var isReceivingType = resolver.Resolve(creator.Create(type)) != null;
                     if (isReceivingType)
@@ -44,7 +63,7 @@ namespace RockyBus.Message
                     }
                 }
 
-                foreach (var type in commandTypes)
+                foreach (var type in scanner.CommandTypes)
                 {
                     var isReceivingType = resolver.Resolve(creator.Create(type)) != null;
                     if (isReceivingType)

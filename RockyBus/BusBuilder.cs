@@ -51,7 +51,6 @@ namespace RockyBus
         public IBus Build()
         {
             if (messageTransport == null) throw new ArgumentException("A message transport is required for a bus.");
-            if (dependencyResolver != null && poorMansDependencyInjection != null) throw new ArgumentException("Use either dependency injection or add message handler, not both.");
 
             return new Bus(messageTransport, dependencyResolver ?? poorMansDependencyInjection, messageScanRules, exceptionHandler);
         }
