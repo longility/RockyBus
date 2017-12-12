@@ -97,5 +97,33 @@ namespace RockyBus.UnitTests
             await messageTransport.ReceivedWithAnyArgs().InitializeReceivingEndpoint();
             await messageTransport.ReceivedWithAnyArgs().StartReceivingMessages(Arg.Any<MessageHandlerExecutor>());
         }
+
+        [TestMethod]
+        public async Task send_a_message_with_send_options_should_send_a_command_to_the_message_transport()
+        {
+            await bus.Start();
+            var message = new AppleCommand();
+            var options = new SendOptions();
+
+            options.SetHeaders("color", "red");
+            options.SetHeaders("dents", "4");
+
+            await bus.Send(message, options);
+            await messageTransport.Received().Send(message, bus.MessageTypeToNameSendingCommandMap[message.GetType()], options);
+        }
+
+        [TestMethod]
+        public async Task publish_a_message_with_publish_options_should_send_a_command_to_the_message_transport()
+        {
+            await bus.Start();
+            var message = new CatEvent();
+            var options = new PublishOptions();
+
+            options.SetHeaders("name", "smokey");
+            options.SetHeaders("lives", "7");
+
+            await bus.Publish(message, options);
+            await messageTransport.Received().Publish(message, bus.MessageTypeToNamePublishingEventMap[message.GetType()], options);
+        }
     }
 }

@@ -12,7 +12,9 @@ namespace RockyBus
         Task InitializeReceivingEndpoint();
 
         Task Publish<T>(T message, string messageTypeName);
+        Task Publish<T>(T message, string messageTypeName, PublishOptions options);
         Task Send<T>(T message, string messageTypeName);
+        Task Send<T>(T message, string messageTypeName, SendOptions options);
 
         Task StartReceivingMessages(MessageHandlerExecutor messageHandlerExecutor);
         Task StopReceivingMessages();
