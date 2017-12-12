@@ -42,13 +42,32 @@ namespace RockyBus
         public Task InitializeReceivingEndpoint() => azureServiceBusManagement.InitializeReceivingEndpoint(TopicName, ReceivingMessageTypeNames.ReceivingEventMessageTypeNames);
 
         public Task Publish<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName);
-        public Task Send<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName, true);
 
-        private Task SendToTopic<T>(T message, string messageTypeName, bool isCommand = false)
+        public Task Publish<T>(T message, string messageTypeName, PublishOptions publishOptions) => SendToTopic(message, messageTypeName, publishOptions);
+
+        public Task Send<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName, isCommand: true);
+
+        public Task Send<T>(T message, string messageTypeName, SendOptions sendOptions) => SendToTopic(message, messageTypeName, sendOptions, true);
+
+        private Task SendToTopic<T>(T message, string messageTypeName, Options options = null, bool isCommand = false)
         {
             var serviceBusMessage = new ServiceBusMessage { Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(message)) };
+
             serviceBusMessage.UserProperties.Add(UserProperties.MessageTypeKey, messageTypeName);
-            if (isCommand) serviceBusMessage.UserProperties.Add(UserProperties.DestinationQueueKey, configuration.PublishAndSendOptions.GetQueue<T>());
+
+            if (options != null)
+            {
+                foreach (var item in options.GetHeaders())
+                {
+                    serviceBusMessage.UserProperties.Add(item.Key, item.Value);
+                }
+            }
+
+            if (isCommand)
+            {
+                serviceBusMessage.UserProperties.Add(UserProperties.DestinationQueueKey, configuration.PublishAndSendOptions.GetQueue<T>());
+            }
+
             return topicClient.SendAsync(serviceBusMessage);
         }
 
