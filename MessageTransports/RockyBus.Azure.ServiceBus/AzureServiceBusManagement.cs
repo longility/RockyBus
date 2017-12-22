@@ -47,11 +47,7 @@ namespace RockyBus.Azure.ServiceBus
                 configuration.ReceiveOptions.QueueName,
                 configuration.ReceiveOptions.SBSubscription ?? new SBSubscription { });
 
-            var eventMessageFilter = new Rule
-            {
-                SqlFilter = new SqlFilter(
-                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames.Select(n => $"'{n}'"))})")
-            };
+            var eventMessageFilter = CreateEventMessageFilter();
 
             var commandMessageFilter = new Rule
             {
@@ -62,6 +58,17 @@ namespace RockyBus.Azure.ServiceBus
             await Task.WhenAll(
                 CreateOrUpdateRule(nameof(eventMessageFilter), eventMessageFilter),
                 CreateOrUpdateRule(nameof(commandMessageFilter), commandMessageFilter));
+
+            Rule CreateEventMessageFilter()
+            {
+                return eventMessageTypeNames.Any() ?
+                                            new Rule
+                                            {
+                                                SqlFilter = new SqlFilter(
+                                                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames.Select(n => $"'{n}'"))})")
+                                            } 
+                    : new Rule { SqlFilter = new SqlFilter("user.alwaysfalse IS NOT NULL") };
+            }
 
             Task CreateOrUpdateRule(string filterName, Rule rule) =>
                 sbManagementClient.Rules.CreateOrUpdateAsync(
