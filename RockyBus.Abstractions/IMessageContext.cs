@@ -6,5 +6,7 @@ namespace RockyBus
     {
         int? DeliveryCount { get; }
         DateTimeOffset EnqueueTime { get; }
+        Task Publish<T>(T eventMessage);
+        Task Send<T>(T commandMessage);
     }
 }

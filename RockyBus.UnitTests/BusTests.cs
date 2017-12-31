@@ -26,6 +26,12 @@ namespace RockyBus.UnitTests
         }
 
         [TestMethod]
+        public void bus_should_be_set()
+        {
+            messageTransport.Bus.Should().NotBeNull();
+        }
+
+        [TestMethod]
         public void publish_without_starting_bus_should_throw_exception()
         {
             Func<Task> action = () => bus.Publish(new CatEvent());
