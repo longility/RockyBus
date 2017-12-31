@@ -23,6 +23,8 @@ namespace RockyBus
 
         public bool IsPublishAndSendOnly => string.IsNullOrWhiteSpace(configuration.ReceiveOptions.QueueName);
 
+        public IBus Bus { get; set; }
+
         public AzureServiceBusTransport(string connectionString, Action<AzureServiceBusConfiguration> configuration)
         {
             this.connectionString = connectionString;
@@ -54,7 +56,7 @@ namespace RockyBus
         {
             subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
             subscriptionClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(message), cancellationToken),
+                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(Bus, message), cancellationToken),
                 new MessageHandlerOptions(_ => Task.CompletedTask)
                 { });
 

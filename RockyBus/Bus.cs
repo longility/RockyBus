@@ -16,6 +16,7 @@ namespace RockyBus
         public Bus(IMessageTransport busTransport, IDependencyResolver dependencyResolver, MessageScanRules rules, 
                    Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler = null)
         {
+            busTransport.Bus = this;
             this.busTransport = busTransport;
             this.dependencyResolver = dependencyResolver;
             this.busMessages = new BusMessages(rules, dependencyResolver);

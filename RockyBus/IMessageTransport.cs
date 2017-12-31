@@ -8,6 +8,7 @@ namespace RockyBus
         IReceivingMessageTypeNames ReceivingMessageTypeNames { get; set; }
         bool IsPublishAndSendOnly { get; }
 
+        IBus Bus { get; set; }
         Task InitializePublishingEndpoint();
         Task InitializeReceivingEndpoint();
 
