@@ -24,7 +24,14 @@ namespace RockyBus.Message
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(e => !e.IsDynamic).Except(new[] { Assembly.GetExecutingAssembly() }).ToList();
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetExportedTypes())
+                var exportedTypes = new Type[0];
+                try 
+                {
+                    exportedTypes = assembly.GetExportedTypes();
+                }
+                catch { }
+                
+                foreach (var type in exportedTypes)
                 {
                     if (rules.IsAnEvent(type)) eventTypes.Add(type);
                     if (rules.IsACommand(type)) commandTypes.Add(type);
