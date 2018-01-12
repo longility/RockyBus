@@ -16,7 +16,7 @@ namespace RockyBus
         private readonly string connectionString;
         private readonly AzureServiceBusManagement azureServiceBusManagement;
         private readonly AzureServiceBusConfiguration configuration = new AzureServiceBusConfiguration { };
-        private SubscriptionClient subscriptionClient;
+        private QueueClient queueClient;
         private TopicClient topicClient;
 
         public IReceivingMessageTypeNames ReceivingMessageTypeNames { get; set; }
@@ -54,8 +54,8 @@ namespace RockyBus
 
         public Task StartReceivingMessages(MessageHandlerExecutor messageHandlerExecutor)
         {
-            subscriptionClient = new SubscriptionClient(connectionString, TopicName, configuration.ReceiveOptions.QueueName);
-            subscriptionClient.RegisterMessageHandler(
+            queueClient = new QueueClient(connectionString, configuration.ReceiveOptions.QueueName);
+            queueClient.RegisterMessageHandler(
                 (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(Bus, message), cancellationToken),
                 new MessageHandlerOptions(_ => Task.CompletedTask)
                 { });
@@ -70,6 +70,6 @@ namespace RockyBus
             }
         }
 
-        public Task StopReceivingMessages() => subscriptionClient?.CloseAsync() ?? Task.CompletedTask;
+        public Task StopReceivingMessages() => queueClient?.CloseAsync() ?? Task.CompletedTask;
     }
 }
