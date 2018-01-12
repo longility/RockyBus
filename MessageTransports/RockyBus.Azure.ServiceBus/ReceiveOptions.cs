@@ -7,5 +7,6 @@ namespace RockyBus
     {
         public string QueueName { get; set; }
         public SBSubscription SBSubscription { get; set; }
+        public SBQueue SBQueue { get; set; }
     }
 }

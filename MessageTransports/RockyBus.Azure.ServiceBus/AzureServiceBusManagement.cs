@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Management.ServiceBus;
-using Microsoft.Azure.Management.ServiceBus.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
 using System;
@@ -40,44 +38,7 @@ namespace RockyBus.Azure.ServiceBus
         {
             var sbManagementClient = await GetServiceBusManagementClient();
 
-            await sbManagementClient.Subscriptions.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                topicName,
-                configuration.ReceiveOptions.QueueName,
-                configuration.ReceiveOptions.SBSubscription ?? new SBSubscription { });
-
-            var eventMessageFilter = CreateEventMessageFilter();
-
-            var commandMessageFilter = new Rule
-            {
-                SqlFilter = new SqlFilter(
-                    $"user.{UserProperties.DestinationQueueKey}='{configuration.ReceiveOptions.QueueName}'")
-            };
-
-            await Task.WhenAll(
-                CreateOrUpdateRule(nameof(eventMessageFilter), eventMessageFilter),
-                CreateOrUpdateRule(nameof(commandMessageFilter), commandMessageFilter));
-
-            Rule CreateEventMessageFilter()
-            {
-                return eventMessageTypeNames.Any() ?
-                                            new Rule
-                                            {
-                                                SqlFilter = new SqlFilter(
-                                                    $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames.Select(n => $"'{n}'"))})")
-                                            } 
-                    : new Rule { SqlFilter = new SqlFilter("user.alwaysfalse IS NOT NULL") };
-            }
-
-            Task CreateOrUpdateRule(string filterName, Rule rule) =>
-                sbManagementClient.Rules.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                topicName,
-                configuration.ReceiveOptions.QueueName,
-                filterName,
-                rule);
+            await new ReceivingEndpoint(configuration, sbManagementClient, topicName, eventMessageTypeNames).Initialize();
         }
 
         public async Task<IServiceBusManagementClient> GetServiceBusManagementClient()
