@@ -34,7 +34,7 @@ namespace RockyBus
 
         public async Task InitializePublishingEndpoint()
         {
-            await azureServiceBusManagement.InitializePublishingEndpoint(TopicName);
+            await azureServiceBusManagement.InitializePublishingEndpoint(TopicName).ConfigureAwait(false);
 
             topicClient = new TopicClient(connectionString, TopicName);
         }

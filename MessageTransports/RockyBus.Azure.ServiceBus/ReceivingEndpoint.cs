@@ -26,8 +26,8 @@ namespace RockyBus.Azure.ServiceBus
 
         public async Task Initialize()
         {
-            await CreateOrUpdateReceivingQueue();
-            await CreateOrUpdateForwardingSubscription();
+            await CreateOrUpdateReceivingQueue().ConfigureAwait(false);
+            await CreateOrUpdateForwardingSubscription().ConfigureAwait(false);
 
             var eventMessageFilter = CreateEventMessageFilter();
             var commandMessageFilter = new Rule
@@ -37,8 +37,8 @@ namespace RockyBus.Azure.ServiceBus
             };
 
             //429 too many requests if running rules at the same time
-            await CreateOrUpdateRule(nameof(eventMessageFilter), eventMessageFilter);
-            await CreateOrUpdateRule(nameof(commandMessageFilter), commandMessageFilter);
+            await CreateOrUpdateRule(nameof(eventMessageFilter), eventMessageFilter).ConfigureAwait(false);
+            await CreateOrUpdateRule(nameof(commandMessageFilter), commandMessageFilter).ConfigureAwait(false);
         }
 
         Task CreateOrUpdateReceivingQueue()

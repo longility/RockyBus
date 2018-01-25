@@ -27,7 +27,7 @@ namespace RockyBus
                 var method = messageHandlerType.GetMethod("Handle");
                 try
                 {
-                    await (method.Invoke(messageHandler, new[] { message, messageContext }) as Task);
+                    await (method.Invoke(messageHandler, new[] { message, messageContext }) as Task).ConfigureAwait(false);
                 }
                 catch(Exception e){
                     await messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
@@ -35,7 +35,7 @@ namespace RockyBus
                         MessageHandlerType = messageHandlerType,
                         Message = message,
                         Exception = e is System.Reflection.TargetInvocationException ? e.InnerException : e
-                    });
+                    }).ConfigureAwait(false);
                     throw;
                 }
             }

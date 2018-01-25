@@ -42,13 +42,13 @@ namespace RockyBus
         public async Task Start()
         {
             busTransport.ReceivingMessageTypeNames = busMessages;
-            await busTransport.InitializePublishingEndpoint();
+            await busTransport.InitializePublishingEndpoint().ConfigureAwait(false);
             if (!busTransport.IsPublishAndSendOnly)
             {
                 if (dependencyResolver == null) throw new InvalidOperationException("Receiving bus requires message handlers. Add message handlers through dependency injection or BusBuilder.");
-                await busTransport.InitializeReceivingEndpoint();
+                await busTransport.InitializeReceivingEndpoint().ConfigureAwait(false);
                 var executor = new MessageHandlerExecutor(dependencyResolver, messageHandlingExceptionHandler);
-                await busTransport.StartReceivingMessages(executor);
+                await busTransport.StartReceivingMessages(executor).ConfigureAwait(false);
             }
 
             started = true;
