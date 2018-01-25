@@ -21,7 +21,7 @@ namespace RockyBus.Azure.ServiceBus
         {
             if (configuration.PublishAndSendOptions.SBTopic == null) return;
 
-            var sbManagementClient = await GetServiceBusManagementClient();
+            var sbManagementClient = await GetServiceBusManagementClient().ConfigureAwait(false);
 
             try
             {
@@ -29,16 +29,16 @@ namespace RockyBus.Azure.ServiceBus
                      configuration.ResourceGroupName,
                      configuration.NamespaceName,
                      topicName,
-                     configuration.PublishAndSendOptions.SBTopic);
+                     configuration.PublishAndSendOptions.SBTopic).ConfigureAwait(false);
             }
             catch (Exception e) { throw new Exception("There are limitations to updating a service bus topic. An option is to consider deleting the topic before trying again.", e); }
         }
 
         public async Task InitializeReceivingEndpoint(string topicName, IEnumerable<string> eventMessageTypeNames)
         {
-            var sbManagementClient = await GetServiceBusManagementClient();
+            var sbManagementClient = await GetServiceBusManagementClient().ConfigureAwait(false);
 
-            await new ReceivingEndpoint(configuration, sbManagementClient, topicName, eventMessageTypeNames).Initialize();
+            await new ReceivingEndpoint(configuration, sbManagementClient, topicName, eventMessageTypeNames).Initialize().ConfigureAwait(false);
         }
 
         public async Task<IServiceBusManagementClient> GetServiceBusManagementClient()
@@ -49,7 +49,7 @@ namespace RockyBus.Azure.ServiceBus
             var result = await context.AcquireTokenAsync(
                 "https://management.core.windows.net/",
                 new ClientCredential(configuration.ClientId, configuration.ClientSecret)
-            );
+            ).ConfigureAwait(false);
 
             var creds = new TokenCredentials(result.AccessToken);
             return serviceBusManagementClient = new ServiceBusManagementClient(creds)
