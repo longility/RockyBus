@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <PackageId>RockyBus.Azure.ServiceBus</PackageId>
     <PackageVersion></PackageVersion>
     <Authors>Long Mai</Authors>
@@ -12,7 +12,9 @@
     <PackageTags>RockyBus</PackageTags>
     <PackageProjectUrl>https://github.com/longility/RockyBus</PackageProjectUrl>
   </PropertyGroup>
-
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
