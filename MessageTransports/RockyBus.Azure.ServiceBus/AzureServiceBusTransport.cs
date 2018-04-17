@@ -41,13 +41,9 @@ namespace RockyBus
 
         public Task InitializeReceivingEndpoint() => azureServiceBusManagement.InitializeReceivingEndpoint(TopicName, ReceivingMessageTypeNames.ReceivingEventMessageTypeNames);
 
-        public Task Publish<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName);
+        public Task Publish<T>(T message, string messageTypeName, PublishOptions publishOptions = null) => SendToTopic(message, messageTypeName, publishOptions);
 
-        public Task Publish<T>(T message, string messageTypeName, PublishOptions publishOptions) => SendToTopic(message, messageTypeName, publishOptions);
-
-        public Task Send<T>(T message, string messageTypeName) => SendToTopic(message, messageTypeName, isCommand: true);
-
-        public Task Send<T>(T message, string messageTypeName, SendOptions sendOptions) => SendToTopic(message, messageTypeName, sendOptions, true);
+        public Task Send<T>(T message, string messageTypeName, SendOptions sendOptions = null) => SendToTopic(message, messageTypeName, sendOptions, true);
 
         private Task SendToTopic<T>(T message, string messageTypeName, Options options = null, bool isCommand = false)
         {

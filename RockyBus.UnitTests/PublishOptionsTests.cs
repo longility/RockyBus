@@ -10,46 +10,39 @@ namespace RockyBus.UnitTests
         [TestMethod]
         public void ShouldSetOptions()
         {
-            var sendOptions = new PublishOptions();
+            var options = new PublishOptions();
             var key = "code";
             var value = "abc"; 
 
-            sendOptions.SetHeaders(key, value);
+            options.SetHeaders(key, value);
 
-            sendOptions.Headers[key].Should().Be(value);
+            options.GetHeaders()[key].Should().Be(value);
         }
 
         [TestMethod]
         public void ShouldGetOptions()
         {
-            var sendOptions = new PublishOptions();
+            var options = new PublishOptions();
             var key = "code";
             var value = "abc";
-            sendOptions.SetHeaders(key, value);
+            options.SetHeaders(key, value);
 
-            var options = sendOptions.GetHeaders();
+            var header = options.GetHeaders();
 
-            options[key].Should().Be(value);
-        }
-
-        [TestMethod]
-        public void ShouldThrowIfOptionsAreNull()
-        {
-            Action setNullOptions = () => OptionExtensions.SetHeaders(null, "code", "value");
-            setNullOptions.ShouldThrow<ArgumentNullException>();
+            header[key].Should().Be(value);
         }
 
         [TestMethod]
         public void ShouldThrowIfKeyIsEmpty()
         {
-            Action setNullOptions = () => OptionExtensions.SetHeaders(new SendOptions(), "", "value");
+            Action setNullOptions = () => new PublishOptions().SetHeaders(" ", "value");
             setNullOptions.ShouldThrow<ArgumentException>();
         }
 
         [TestMethod]
         public void ShouldThrowIfKeyIsNull()
         {
-            Action setNullOptions = () => OptionExtensions.SetHeaders(new SendOptions(), null, "value");
+            Action setNullOptions = () => new PublishOptions().SetHeaders(null, "value");
             setNullOptions.ShouldThrow<ArgumentException>();
         }
     }

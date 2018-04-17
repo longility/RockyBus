@@ -23,34 +23,20 @@ namespace RockyBus
             this.messageHandlingExceptionHandler = messageHandlingExceptionHandler;
         }
 
-        public Task Publish<T>(T eventMessage)
-        {
-            return Publish(eventMessage, null);
-        }
-
-        public Task Publish<T>(T eventMessage, PublishOptions options)
+        public Task Publish<T>(T eventMessage, PublishOptions options = null)
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsPublishable(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return options == null
-                ? busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type])
-                : busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type], options);
+            return busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type], options);
         }
 
-        public Task Send<T>(T commandMessage)
-        {
-            return Send(commandMessage, null);
-        }
-
-        public Task Send<T>(T commandMessage, SendOptions options)
+        public Task Send<T>(T commandMessage, SendOptions options = null)
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsSendable(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return options == null
-                ? busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type])
-                : busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type], options);
+            return busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type], options);
         }
 
         public async Task Start()

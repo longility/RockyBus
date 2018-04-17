@@ -1,14 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace RockyBus
 {
     public abstract class Options
     {
-        protected Options()
+        readonly Dictionary<string, string> headers = new Dictionary<string, string>();
+
+        public void SetHeaders(string key, string value)
         {
-            Headers = new Dictionary<string, string>();
+            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("key", "Key cannot be null or empty.");
+
+            headers[key] = value;
         }
 
-        public Dictionary<string, string> Headers { get; }
+        public IReadOnlyDictionary<string, string> GetHeaders()
+        {
+            return headers;
+        }
     }
 }
