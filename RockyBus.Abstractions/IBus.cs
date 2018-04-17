@@ -5,8 +5,8 @@ namespace RockyBus
     public interface IBus
     {
         Task Start();
-        Task Publish<T>(T eventMessage);
-        Task Send<T>(T commandMessage);
+        Task Publish<T>(T eventMessage, PublishOptions options = null);
+        Task Send<T>(T commandMessage, SendOptions options = null);
         Task Stop();
     }
 }

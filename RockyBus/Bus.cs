@@ -23,20 +23,20 @@ namespace RockyBus
             this.messageHandlingExceptionHandler = messageHandlingExceptionHandler;
         }
 
-        public Task Publish<T>(T eventMessage)
+        public Task Publish<T>(T eventMessage, PublishOptions options = null)
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsPublishable(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type]);
+            return busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type], options);
         }
 
-        public Task Send<T>(T commandMessage)
+        public Task Send<T>(T commandMessage, SendOptions options = null)
         {
             if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsSendable(type)) throw BusMessages.CreateMessageNotFoundException(type);
-            return busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type]);
+            return busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type], options);
         }
 
         public async Task Start()
