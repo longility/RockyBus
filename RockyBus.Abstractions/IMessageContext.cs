@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 namespace RockyBus
 {
@@ -8,5 +9,6 @@ namespace RockyBus
         DateTimeOffset EnqueueTime { get; }
         Task Publish<T>(T eventMessage);
         Task Send<T>(T commandMessage);
+        IReadOnlyDictionary<string, string> MessageHeaders { get; }
     }
 }
