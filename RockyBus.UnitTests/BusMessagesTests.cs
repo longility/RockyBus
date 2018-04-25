@@ -77,7 +77,7 @@ namespace RockyBus.UnitTests.Message
                 new MessageScanRules()
                 .DefineEventScanRuleWith(t => t.Namespace == "Blah")
                 .DefineCommandScanRuleWith(t => t.Namespace == "Blah"), Substitute.For<IDependencyResolver>());
-            action.ShouldThrow<TypeLoadException>();
+            action.Should().Throw<TypeLoadException>();
         }
 
         class BananaHandler : IMessageHandler<Banana>

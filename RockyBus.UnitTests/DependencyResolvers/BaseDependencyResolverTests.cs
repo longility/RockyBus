@@ -18,6 +18,6 @@ namespace RockyBus.UnitTests.DependencyResolvers
         protected void given_dependency_resolver(IDependencyResolver dependencyResolver) => messageHandlerExecutor = new MessageHandlerExecutor(dependencyResolver);
         protected void when_handling_message() => action = () => messageHandlerExecutor.Execute(new AppleCommand(), Substitute.For<IMessageContext>(), new System.Threading.CancellationToken());
         protected void then_should_be_successful() => action().IsCompletedSuccessfully.Should().BeTrue();
-        protected void then_should_be_unsuccessful() => action.ShouldThrow<TypeAccessException>();
+        protected void then_should_be_unsuccessful() => action.Should().Throw<TypeAccessException>();
     }
 }

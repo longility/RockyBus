@@ -35,14 +35,14 @@ namespace RockyBus.UnitTests
         public void publish_without_starting_bus_should_throw_exception()
         {
             Func<Task> action = () => bus.Publish(new CatEvent());
-            action.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Contains("start"));
+            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("start"));
         }
 
         [TestMethod]
         public void send_without_starting_bus_should_throw_exception()
         {
             Func<Task> action = () => bus.Send(new AppleCommand());
-            action.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Contains("start"));
+            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("start"));
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace RockyBus.UnitTests
         {
             await bus.Start();
             Func<Task> action = () => bus.Publish(new AppleCommand());
-            action.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Contains("unexpected behavior"));
+            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("unexpected behavior"));
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace RockyBus.UnitTests
         {
             await bus.Start();
             Func<Task> action = () => bus.Send(new CatEvent());
-            action.ShouldThrow<InvalidOperationException>().Where(e => e.Message.Contains("unexpected behavior"));
+            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("unexpected behavior"));
         }
 
         [TestMethod]

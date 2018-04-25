@@ -36,14 +36,14 @@ namespace RockyBus.UnitTests
         public void ShouldThrowIfKeyIsEmpty()
         {
             Action setNullOptions = () => new PublishOptions().SetHeaders(" ", "value");
-            setNullOptions.ShouldThrow<ArgumentException>();
+            setNullOptions.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
         public void ShouldThrowIfKeyIsNull()
         {
             Action setNullOptions = () => new PublishOptions().SetHeaders(null, "value");
-            setNullOptions.ShouldThrow<ArgumentException>();
+            setNullOptions.Should().Throw<ArgumentException>();
         }
     }
 }

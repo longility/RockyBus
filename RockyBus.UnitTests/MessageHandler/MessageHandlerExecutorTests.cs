@@ -50,7 +50,7 @@ namespace RockyBus.UnitTests.DependencyResolvers
 
         void then_should_call_exception_handler_and_throw()
         {
-            action.ShouldThrow<Exception>();
+            action.Should().Throw<Exception>();
             exception.Message.Should().Be("Rotten Apple");
         }
     }
