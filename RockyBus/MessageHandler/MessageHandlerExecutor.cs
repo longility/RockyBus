@@ -32,7 +32,7 @@ namespace RockyBus
                 catch(Exception e){
                     await messageHandlingExceptionHandler(new MessageHandlingExceptionRaisedEventArgs
                     {
-                        MessageHandlerType = messageHandlerType,
+                        MessageHandlerType = messageHandler.GetType(),
                         Message = message,
                         Exception = e is System.Reflection.TargetInvocationException ? e.InnerException : e
                     }).ConfigureAwait(false);
