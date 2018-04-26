@@ -73,7 +73,10 @@ namespace RockyBus
             queueClient.RegisterMessageHandler(
                 (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(Bus, message), cancellationToken),
                 new MessageHandlerOptions(_ => Task.CompletedTask)
-                { MaxConcurrentCalls = configuration.ReceiveOptions.MaxConcurrentCalls });
+                {
+                    MaxConcurrentCalls = configuration.ReceiveOptions.MaxConcurrentCalls,
+                    MaxAutoRenewDuration = configuration.ReceiveOptions.MaxAutoRenewDuration
+                });
 
             return Task.CompletedTask;
 
