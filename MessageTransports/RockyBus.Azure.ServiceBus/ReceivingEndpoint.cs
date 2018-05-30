@@ -55,7 +55,7 @@ namespace RockyBus.Azure.ServiceBus
         Task CreateOrUpdateForwardingSubscription()
         {
             var sbSubscription = configuration.ReceiveOptions.SBSubscription ?? new SBSubscription { };
-            sbSubscription.ForwardTo = configuration.ReceiveOptions.QueueName;
+            sbSubscription.ForwardTo = configuration.ReceiveOptions.QueueName.ToLower();
             return sbManagementClient.Subscriptions.CreateOrUpdateAsync(
                 configuration.ResourceGroupName,
                 configuration.NamespaceName,
