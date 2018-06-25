@@ -7,6 +7,7 @@ using System.Text;
 using Newtonsoft.Json;
 
 using ServiceBusMessage = Microsoft.Azure.ServiceBus.Message;
+using System.Collections.Generic;
 
 namespace RockyBus
 {
@@ -71,7 +72,37 @@ namespace RockyBus
         {
             queueClient = new QueueClient(connectionString, configuration.ReceiveOptions.QueueName);
             queueClient.RegisterMessageHandler(
-                (message, cancellationToken) => messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames), new AzureServiceBusMessageContext(Bus, message), cancellationToken),
+                async (message, cancellationToken) =>
+            {
+                try
+                {
+                    await messageHandlerExecutor.Execute(GetMessageBody(message, ReceivingMessageTypeNames),
+                                                         new AzureServiceBusMessageContext(Bus, message), cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    var exception = e is System.Reflection.TargetInvocationException ? e.InnerException : e;
+
+                    var propertiesToModify = new Dictionary<string, object>
+                    {
+                        { "ExceptionType", exception.GetType().Name },
+                        { "ExceptionMessage", exception.Message },
+                        { "ExceptionStackTrace", exception.StackTrace }
+                    };
+
+                    if (e.InnerException != null)
+                    {
+                        var innerException = exception.InnerException;
+                        propertiesToModify.Add("InnerExceptionType", innerException.GetType().Name);
+                        propertiesToModify.Add("InnerExceptionMessage", innerException.Message);
+                        propertiesToModify.Add("InnerExceptionStackTrace", innerException.StackTrace);
+                    }
+
+                    await queueClient.AbandonAsync(
+                        message.SystemProperties.LockToken,
+                        propertiesToModify).ConfigureAwait(false);
+                }
+            },
                 new MessageHandlerOptions(_ => Task.CompletedTask)
                 {
                     MaxConcurrentCalls = configuration.ReceiveOptions.MaxConcurrentCalls,
