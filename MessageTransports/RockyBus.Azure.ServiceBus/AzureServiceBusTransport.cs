@@ -90,7 +90,7 @@ namespace RockyBus
                         { "ExceptionStackTrace", exception.StackTrace }
                     };
 
-                    if (e.InnerException != null)
+                    if (exception.InnerException != null)
                     {
                         var innerException = exception.InnerException;
                         propertiesToModify.Add("InnerExceptionType", innerException.GetType().Name);
