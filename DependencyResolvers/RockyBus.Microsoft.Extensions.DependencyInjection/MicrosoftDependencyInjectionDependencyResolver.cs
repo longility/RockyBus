@@ -8,14 +8,12 @@ namespace RockyBus
     internal class MicrosoftDependencyInjectionDependencyResolver : IDependencyResolver
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ICollection<ServiceDescriptor> serviceDescriptors;
         private static readonly string MessageHandlerType = typeof(IMessageHandler<>).Name;
         private readonly Lazy<IEnumerable<Type>> handlingMessageTypes;
 
-        public MicrosoftDependencyInjectionDependencyResolver(IServiceProvider serviceProvider, ICollection<ServiceDescriptor> serviceDescriptors)
+        public MicrosoftDependencyInjectionDependencyResolver(IServiceProvider serviceProvider, IEnumerable<ServiceDescriptor> serviceDescriptors)
         {
             this.serviceProvider = serviceProvider;
-            this.serviceDescriptors = serviceDescriptors;
             handlingMessageTypes = new Lazy<IEnumerable<Type>>(() =>
             {
                 return serviceDescriptors
@@ -54,7 +52,7 @@ namespace RockyBus
         /// <param name="serviceProvider"></param>
         /// <param name="serviceDescriptors">ServiceCollection should be passed in</param>
         /// <returns></returns>
-        public static BusBuilder UseMicrosoftDependencyInjection(this BusBuilder busBuilder, IServiceProvider serviceProvider, ICollection<ServiceDescriptor> serviceDescriptors)
+        public static BusBuilder UseMicrosoftDependencyInjection(this BusBuilder busBuilder, IServiceProvider serviceProvider, IEnumerable<ServiceDescriptor> serviceDescriptors)
         {
             var dependencyInjection = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceDescriptors);
             return busBuilder
