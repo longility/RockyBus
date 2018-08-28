@@ -85,7 +85,7 @@ namespace RockyBus.SenderDemo
                                     configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
                                     configuration.ReceiveOptions.QueueName = "saturn";
                                 })
-                            .UseMicrosoftDependencyInjection(p)
+                            .UseMicrosoftDependencyInjection(p, serviceCollection)
                             .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Command"))
                             .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Event"))
                         .HandleMessageHandleExceptions(a => { Trace.WriteLine(a.Exception.Message); return Task.CompletedTask; })

@@ -8,16 +8,16 @@ namespace RockyBus.Message
     internal class MessageScanner
     {
         private readonly MessageScanRules rules;
-        private readonly ICollection<Type> eventTypes = new List<Type>();
-        private readonly ICollection<Type> commandTypes = new List<Type>();
 
         public MessageScanner(MessageScanRules rules)
         {
             this.rules = rules;
         }
 
-        public IEnumerable<Type> EventTypes => eventTypes;
-        public IEnumerable<Type> CommandTypes => commandTypes;
+        public IDictionary<string, Type> EventFullNameToTypeMap { get; } = new Dictionary<string, Type>();
+        public IDictionary<Type, string> EventTypeToFullNameMap { get; } = new Dictionary<Type, string>();
+        public IDictionary<string, Type> CommandFullNameToTypeMap { get; } = new Dictionary<string, Type>();
+        public IDictionary<Type, string> CommandTypeToFullNameMap { get; } = new Dictionary<Type, string>();
 
         public void Scan()
         {
@@ -25,16 +25,24 @@ namespace RockyBus.Message
             foreach (var assembly in assemblies)
             {
                 var exportedTypes = new Type[0];
-                try 
+                try
                 {
                     exportedTypes = assembly.GetExportedTypes();
                 }
                 catch { }
-                
+
                 foreach (var type in exportedTypes)
                 {
-                    if (rules.IsAnEvent(type)) eventTypes.Add(type);
-                    if (rules.IsACommand(type)) commandTypes.Add(type);
+                    if (rules.IsAnEvent(type))
+                    {
+                        EventFullNameToTypeMap.Add(type.FullName, type);
+                        EventTypeToFullNameMap.Add(type, type.FullName);
+                    }
+                    else if (rules.IsACommand(type))
+                    {
+                        CommandFullNameToTypeMap.Add(type.FullName, type);
+                        CommandTypeToFullNameMap.Add(type, type.FullName);
+                    }
                 }
             }
         }

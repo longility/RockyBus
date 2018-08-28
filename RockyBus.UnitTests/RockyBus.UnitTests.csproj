@@ -21,7 +21,4 @@
     <ProjectReference Include="..\RockyBus.DemoMessages\RockyBus.DemoMessages.csproj" />
     <ProjectReference Include="..\RockyBus.Abstractions\RockyBus.Abstractions.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="DependencyResolvers\" />
-  </ItemGroup>
 </Project>

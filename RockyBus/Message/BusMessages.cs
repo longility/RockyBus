@@ -6,90 +6,56 @@ namespace RockyBus.Message
 {
     class BusMessages : IReceivingMessageTypeNames
     {
-        private readonly IDictionary<string, Type> nameToMessageTypePublishingEventMap = new Dictionary<string, Type>();
-        private readonly IDictionary<Type, string> messageTypeToNamePublishingEventMap = new Dictionary<Type, string>();
-        private readonly IDictionary<string, Type> nameToMessageTypeSendingCommandMap = new Dictionary<string, Type>();
-        private readonly IDictionary<Type, string> messageTypeToNameSendingCommandMap = new Dictionary<Type, string>();
-        private readonly IDictionary<string, Type> nameToMessageTypeReceivingEventMap = new Dictionary<string, Type>();
-        private readonly IDictionary<Type, string> messageTypeToNameReceivingEventMap = new Dictionary<Type, string>();
-        private readonly IDictionary<string, Type> nameToMessageTypeReceivingCommandMap = new Dictionary<string, Type>();
-        private readonly IDictionary<Type, string> messageTypeToNameReceivingCommandMap = new Dictionary<Type, string>();
+        private readonly MessageScanner scanner;
 
-        public IDictionary<Type, string> MessageTypeToNamePublishingEventMap { get { return messageTypeToNamePublishingEventMap; } }
-        public IDictionary<Type, string> MessageTypeToNameSendingCommandMap { get { return messageTypeToNameSendingCommandMap; } }
+        public IDictionary<Type, string> MessageTypeToNamePublishingEventMap { get { return scanner.EventTypeToFullNameMap; } }
+        public IDictionary<Type, string> MessageTypeToNameSendingCommandMap { get { return scanner.CommandTypeToFullNameMap; } }
+        private readonly HashSet<Type> publishingTypes;
+        private readonly HashSet<Type> sendingTypes;
+
+        public IEnumerable<string> ReceivingEventMessageTypeNames { get; }
+
         public BusMessages(MessageScanRules messageScanRules, IDependencyResolver dependencyResolver)
         {
-            var scanner = new MessageScanner(messageScanRules);
+            scanner = new MessageScanner(messageScanRules);
             scanner.Scan();
 
-            if (!scanner.EventTypes.Any() && !scanner.CommandTypes.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
+            if (!scanner.EventFullNameToTypeMap.Any() && !scanner.CommandFullNameToTypeMap.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
 
-            if (dependencyResolver == null) InitializeMapsWithoutDependencyResolver(scanner);
-            else InitializeMapsWithDependencyResolver(dependencyResolver, scanner);
+            ReceivingEventMessageTypeNames = GetReceivingEventMessageTypeNames(dependencyResolver);
+            publishingTypes = GetPublishingTypes(dependencyResolver);
+            sendingTypes = GetSendingTypes(dependencyResolver);
         }
 
-        private void InitializeMapsWithoutDependencyResolver(MessageScanner scanner)
+        private IEnumerable<string> GetReceivingEventMessageTypeNames(IDependencyResolver dependencyResolver)
         {
-            foreach (var type in scanner.EventTypes)
-            {
-                nameToMessageTypePublishingEventMap.Add(type.FullName, type);
-                messageTypeToNamePublishingEventMap.Add(type, type.FullName);
-            }
-
-            foreach (var type in scanner.CommandTypes)
-            {
-                nameToMessageTypeSendingCommandMap.Add(type.FullName, type);
-                messageTypeToNameSendingCommandMap.Add(type, type.FullName);
-            }
+            return dependencyResolver == null ?
+                Enumerable.Empty<string>() :
+                dependencyResolver.GetHandlingMessageTypes().Intersect(scanner.EventTypeToFullNameMap.Keys).Select(t => t.FullName).ToList();
         }
 
-        private void InitializeMapsWithDependencyResolver(IDependencyResolver dependencyResolver, MessageScanner scanner)
+        private HashSet<Type> GetPublishingTypes(IDependencyResolver dependencyResolver)
         {
-            using (var resolver = dependencyResolver.CreateScope())
-            {
-                var creator = new MessageHandlerTypeCreator();
-                foreach (var type in scanner.EventTypes)
-                {
-                    var isReceivingType = resolver.Resolve(creator.Create(type)) != null;
-                    if (isReceivingType)
-                    {
-                        nameToMessageTypeReceivingEventMap.Add(type.FullName, type);
-                        messageTypeToNameReceivingEventMap.Add(type, type.FullName);
-                    }
-                    else
-                    {
-                        nameToMessageTypePublishingEventMap.Add(type.FullName, type);
-                        messageTypeToNamePublishingEventMap.Add(type, type.FullName);
-                    }
-                }
-
-                foreach (var type in scanner.CommandTypes)
-                {
-                    var isReceivingType = resolver.Resolve(creator.Create(type)) != null;
-                    if (isReceivingType)
-                    {
-                        nameToMessageTypeReceivingCommandMap.Add(type.FullName, type);
-                        messageTypeToNameReceivingCommandMap.Add(type, type.FullName);
-                    }
-                    else
-                    {
-                        nameToMessageTypeSendingCommandMap.Add(type.FullName, type);
-                        messageTypeToNameSendingCommandMap.Add(type, type.FullName);
-                    }
-                }
-            }
+            return dependencyResolver == null ?
+                new HashSet<Type>(scanner.EventTypeToFullNameMap.Keys) :
+                new HashSet<Type>(scanner.EventTypeToFullNameMap.Keys.Where(t => !dependencyResolver.GetHandlingMessageTypes().Contains(t)));
         }
 
-        public IEnumerable<string> ReceivingEventMessageTypeNames => nameToMessageTypeReceivingEventMap.Keys;
+        private HashSet<Type> GetSendingTypes(IDependencyResolver dependencyResolver)
+        {
+            return dependencyResolver == null ?
+                new HashSet<Type>(scanner.CommandTypeToFullNameMap.Keys) :
+                new HashSet<Type>(scanner.CommandTypeToFullNameMap.Keys.Where(t => !dependencyResolver.GetHandlingMessageTypes().Contains(t)));
+        }
 
-        internal bool IsPublishable(Type type) => messageTypeToNamePublishingEventMap.ContainsKey(type);
-        internal bool IsSendable(Type type) => messageTypeToNameSendingCommandMap.ContainsKey(type);
-
+        internal bool IsPublishable(Type type) => publishingTypes.Contains(type);
+        internal bool IsSendable(Type type) => sendingTypes.Contains(type);
 
         public Type GetReceivingTypeByMessageTypeName(string messageTypeName)
         {
-            if (nameToMessageTypeReceivingEventMap.TryGetValue(messageTypeName, out var type)) return type;
-            if (nameToMessageTypeReceivingCommandMap.TryGetValue(messageTypeName, out type)) return type;
+            if (scanner.EventFullNameToTypeMap.TryGetValue(messageTypeName, out Type eventType)) return eventType;
+            if (scanner.CommandFullNameToTypeMap.TryGetValue(messageTypeName, out Type commandType)) return commandType;
+
             throw CreateMessageNotFoundException(messageTypeName);
         }
 

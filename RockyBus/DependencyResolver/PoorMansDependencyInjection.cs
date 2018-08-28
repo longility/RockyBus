@@ -6,14 +6,18 @@ namespace RockyBus
     internal class PoorMansDependencyInjection : IDependencyResolver
     {
         private readonly PoorMansResolverScope poorMansResolverScope = new PoorMansResolverScope();
+        private readonly IList<Type> handlingMessageTypes = new List<Type>();
 
         public IResolverScope CreateScope() => poorMansResolverScope;
 
         public PoorMansDependencyInjection AddMessageHandler<T>(Func<IMessageHandler<T>> createMessageHandler)
         {
             poorMansResolverScope.AddMessageHandler(createMessageHandler);
+            handlingMessageTypes.Add(typeof(T));
             return this;
         }
+
+        public IEnumerable<Type> GetHandlingMessageTypes() => handlingMessageTypes;
     }
 
     internal class PoorMansResolverScope : IResolverScope

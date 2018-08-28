@@ -5,6 +5,7 @@ using RockyBus.DemoMessages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using System.Linq;
 
 namespace RockyBus.UnitTests.DependencyResolvers
 {
@@ -35,29 +36,47 @@ namespace RockyBus.UnitTests.DependencyResolvers
             then_should_be_successful();
         }
 
+        [TestMethod]
+        public void MicrosoftExtensionsDependencyInjection_get_message_type()
+        {
+            var serviceCollection = new ServiceCollection();
+            var serviceProvider = serviceCollection
+                .AddScoped<IMessageHandler<AppleCommand>, DirectAppleCommandHandler>()
+                .BuildServiceProvider();
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection);
+
+            var messageTypes = dependencyResolver.GetHandlingMessageTypes();
+
+            messageTypes.Should().HaveCount(1);
+            messageTypes.Single().Should().Be(typeof(AppleCommand));
+        }
+
         protected override void given_no_message_handlers()
         {
-            var serviceProvider = new ServiceCollection()
+            var serviceCollection = new ServiceCollection();
+            var serviceProvider = serviceCollection
                 .BuildServiceProvider();
-            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection);
             given_dependency_resolver(dependencyResolver);
         }
 
         protected override void given_direct_implementation_of_IMessageHandler()
         {
-            var serviceProvider = new ServiceCollection()
+            var serviceCollection = new ServiceCollection();
+            var serviceProvider = serviceCollection
                 .AddScoped<IMessageHandler<AppleCommand>, DirectAppleCommandHandler>()
                 .BuildServiceProvider();
-            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection);
             given_dependency_resolver(dependencyResolver);
         }
 
         protected override void given_indirect_implementation_of_IMessageHandler()
         {
-            var serviceProvider = new ServiceCollection()
+            var serviceCollection = new ServiceCollection();
+            var serviceProvider = serviceCollection
                 .AddScoped<IMessageHandler<AppleCommand>, IndirectAppleCommandHandler>()
                 .BuildServiceProvider();
-            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider);
+            var dependencyResolver = new MicrosoftDependencyInjectionDependencyResolver(serviceProvider, serviceCollection);
             given_dependency_resolver(dependencyResolver);
         }
     }
