@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Azure.Management.ServiceBus;
+﻿using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RockyBus.Azure.ServiceBus
 {
@@ -23,15 +22,12 @@ namespace RockyBus.Azure.ServiceBus
 
             var sbManagementClient = await GetServiceBusManagementClient().ConfigureAwait(false);
 
-            try
-            {
-                await sbManagementClient.Topics.CreateOrUpdateAsync(
+            await Retry.Do(() =>
+                 sbManagementClient.Topics.CreateOrUpdateAsync(
                      configuration.ResourceGroupName,
                      configuration.NamespaceName,
                      topicName,
-                     configuration.PublishAndSendOptions.SBTopic).ConfigureAwait(false);
-            }
-            catch (Exception e) { throw new Exception("There are limitations to updating a service bus topic. An option is to consider deleting the topic before trying again.", e); }
+                     configuration.PublishAndSendOptions.SBTopic)).ConfigureAwait(false);
         }
 
         public async Task InitializeReceivingEndpoint(string topicName, IEnumerable<string> eventMessageTypeNames)

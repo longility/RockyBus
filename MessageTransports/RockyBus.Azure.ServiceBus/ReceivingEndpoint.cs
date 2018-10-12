@@ -1,8 +1,8 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Azure.Management.ServiceBus;
+﻿using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RockyBus.Azure.ServiceBus
 {
@@ -45,23 +45,25 @@ namespace RockyBus.Azure.ServiceBus
         {
             var sbQueue = configuration.ReceiveOptions.SBQueue ?? new SBQueue { };
             sbQueue.ForwardTo = null;
-            return sbManagementClient.Queues.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                configuration.ReceiveOptions.QueueName,
-                sbQueue);
+            return Retry.Do(() =>
+                sbManagementClient.Queues.CreateOrUpdateAsync(
+                    configuration.ResourceGroupName,
+                    configuration.NamespaceName,
+                    configuration.ReceiveOptions.QueueName,
+                    sbQueue));
         }
 
         Task CreateOrUpdateForwardingSubscription()
         {
             var sbSubscription = configuration.ReceiveOptions.SBSubscription ?? new SBSubscription { };
             sbSubscription.ForwardTo = configuration.ReceiveOptions.QueueName.ToLower();
-            return sbManagementClient.Subscriptions.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                topicName,
-                configuration.ReceiveOptions.QueueName,
-                sbSubscription);
+            return Retry.Do(() =>
+                sbManagementClient.Subscriptions.CreateOrUpdateAsync(
+                    configuration.ResourceGroupName,
+                    configuration.NamespaceName,
+                    topicName,
+                    configuration.ReceiveOptions.QueueName,
+                    sbSubscription));
         }
 
         Rule CreateEventMessageFilter()
@@ -76,12 +78,14 @@ namespace RockyBus.Azure.ServiceBus
         }
 
         Task CreateOrUpdateRule(string filterName, Rule rule) =>
+            Retry.Do(() =>
                 sbManagementClient.Rules.CreateOrUpdateAsync(
-                configuration.ResourceGroupName,
-                configuration.NamespaceName,
-                topicName,
-                configuration.ReceiveOptions.QueueName,
-                filterName,
-                rule);
+                    configuration.ResourceGroupName,
+                    configuration.NamespaceName,
+                    topicName,
+                    configuration.ReceiveOptions.QueueName,
+                    filterName,
+                    rule)
+            );
     }
 }
