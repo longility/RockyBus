@@ -32,20 +32,6 @@ namespace RockyBus.UnitTests
         }
 
         [TestMethod]
-        public void publish_without_starting_bus_should_throw_exception()
-        {
-            Func<Task> action = () => bus.Publish(new CatEvent());
-            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("start"));
-        }
-
-        [TestMethod]
-        public void send_without_starting_bus_should_throw_exception()
-        {
-            Func<Task> action = () => bus.Send(new AppleCommand());
-            action.Should().Throw<InvalidOperationException>().Where(e => e.Message.Contains("start"));
-        }
-
-        [TestMethod]
         public async Task publishing_a_command_should_throw_exception()
         {
             await bus.Start();

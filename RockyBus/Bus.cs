@@ -11,7 +11,6 @@ namespace RockyBus
         readonly IDependencyResolver dependencyResolver;
         readonly BusMessages busMessages;
         readonly Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler;
-        bool started = false;
 
         public Bus(IMessageTransport busTransport, IDependencyResolver dependencyResolver, MessageScanRules rules, 
                    Func<MessageHandlingExceptionRaisedEventArgs, Task> messageHandlingExceptionHandler = null)
@@ -25,7 +24,6 @@ namespace RockyBus
 
         public Task Publish<T>(T eventMessage, PublishOptions options = null)
         {
-            if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsPublishable(type)) throw BusMessages.CreateMessageNotFoundException(type);
             return busTransport.Publish(eventMessage, MessageTypeToNamePublishingEventMap[type], options);
@@ -33,7 +31,6 @@ namespace RockyBus
 
         public Task Send<T>(T commandMessage, SendOptions options = null)
         {
-            if (!started) throw new InvalidOperationException("The bus has not been started.");
             var type = typeof(T);
             if (!busMessages.IsSendable(type)) throw BusMessages.CreateMessageNotFoundException(type);
             return busTransport.Send(commandMessage, MessageTypeToNameSendingCommandMap[type], options);
@@ -41,17 +38,15 @@ namespace RockyBus
 
         public async Task Start()
         {
-            busTransport.ReceivingMessageTypeNames = busMessages;
             await busTransport.InitializePublishingEndpoint().ConfigureAwait(false);
             if (!busTransport.IsPublishAndSendOnly)
             {
+                busTransport.ReceivingMessageTypeNames = busMessages;
                 if (dependencyResolver == null) throw new InvalidOperationException("Receiving bus requires message handlers. Add message handlers through dependency injection or BusBuilder.");
                 await busTransport.InitializeReceivingEndpoint().ConfigureAwait(false);
                 var executor = new MessageHandlerExecutor(dependencyResolver, messageHandlingExceptionHandler);
                 await busTransport.StartReceivingMessages(executor).ConfigureAwait(false);
             }
-
-            started = true;
         }
 
         public Task Stop()
