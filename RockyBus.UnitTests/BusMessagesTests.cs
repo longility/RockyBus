@@ -13,21 +13,21 @@ namespace RockyBus.UnitTests.Message
     public class BusMessagesTests
     {
         [TestMethod]
-        public void bus_messages_should_send_only_commands_without_handler()
+        public void bus_messages_should_send_only_commands_with_or_without_handler_to_support_local_or_non_local_messaging()
         {
             busMessages.IsSendable(typeof(Apple)).Should().BeTrue();
-            busMessages.IsSendable(typeof(Banana)).Should().BeFalse();
+            busMessages.IsSendable(typeof(Banana)).Should().BeTrue();
             busMessages.IsSendable(typeof(Cat)).Should().BeFalse();
             busMessages.IsSendable(typeof(Dog)).Should().BeFalse();
         }
 
         [TestMethod]
-        public void bus_messages_should_publish_only_events_without_handler()
+        public void bus_messages_should_publish_only_events_with_or_without_handler_to_support_local_or_non_local_messaging()
         {
             busMessages.IsPublishable(typeof(Apple)).Should().BeFalse();
             busMessages.IsPublishable(typeof(Banana)).Should().BeFalse();
             busMessages.IsPublishable(typeof(Cat)).Should().BeTrue();
-            busMessages.IsPublishable(typeof(Dog)).Should().BeFalse();
+            busMessages.IsPublishable(typeof(Dog)).Should().BeTrue();
         }
 
         [TestMethod]

@@ -10,8 +10,6 @@ namespace RockyBus.Message
 
         public IDictionary<Type, string> MessageTypeToNamePublishingEventMap { get { return scanner.EventTypeToFullNameMap; } }
         public IDictionary<Type, string> MessageTypeToNameSendingCommandMap { get { return scanner.CommandTypeToFullNameMap; } }
-        private readonly HashSet<Type> publishingTypes;
-        private readonly HashSet<Type> sendingTypes;
 
         public IEnumerable<string> ReceivingEventMessageTypeNames { get; }
 
@@ -23,8 +21,6 @@ namespace RockyBus.Message
             if (!scanner.EventFullNameToTypeMap.Any() && !scanner.CommandFullNameToTypeMap.Any()) throw new TypeLoadException("Unable to find any messages. Properly define the message scan rules so it can be scanned properly.");
 
             ReceivingEventMessageTypeNames = GetReceivingEventMessageTypeNames(dependencyResolver);
-            publishingTypes = GetPublishingTypes(dependencyResolver);
-            sendingTypes = GetSendingTypes(dependencyResolver);
         }
 
         private IEnumerable<string> GetReceivingEventMessageTypeNames(IDependencyResolver dependencyResolver)
@@ -34,22 +30,8 @@ namespace RockyBus.Message
                 dependencyResolver.GetHandlingMessageTypes().Intersect(scanner.EventTypeToFullNameMap.Keys).Select(t => t.FullName).ToList();
         }
 
-        private HashSet<Type> GetPublishingTypes(IDependencyResolver dependencyResolver)
-        {
-            return dependencyResolver == null ?
-                new HashSet<Type>(scanner.EventTypeToFullNameMap.Keys) :
-                new HashSet<Type>(scanner.EventTypeToFullNameMap.Keys.Where(t => !dependencyResolver.GetHandlingMessageTypes().Contains(t)));
-        }
-
-        private HashSet<Type> GetSendingTypes(IDependencyResolver dependencyResolver)
-        {
-            return dependencyResolver == null ?
-                new HashSet<Type>(scanner.CommandTypeToFullNameMap.Keys) :
-                new HashSet<Type>(scanner.CommandTypeToFullNameMap.Keys.Where(t => !dependencyResolver.GetHandlingMessageTypes().Contains(t)));
-        }
-
-        internal bool IsPublishable(Type type) => publishingTypes.Contains(type);
-        internal bool IsSendable(Type type) => sendingTypes.Contains(type);
+        internal bool IsPublishable(Type type) => scanner.EventTypeToFullNameMap.ContainsKey(type);
+        internal bool IsSendable(Type type) => scanner.CommandTypeToFullNameMap.ContainsKey(type);
 
         public Type GetReceivingTypeByMessageTypeName(string messageTypeName)
         {
