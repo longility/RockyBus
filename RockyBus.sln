@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockyBus.Azure.ServiceBus",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{7D0EB0B8-DD7A-45E5-BCF1-C90896842365}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RockyBus.Azure.Storage.Queue", "MessageTransports\RockyBus.Azure.Storage.Queue\RockyBus.Azure.Storage.Queue.csproj", "{6D516F61-D6BF-487E-AEF3-87D702BE331E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,9 +57,14 @@ Global
 		{8F0CAA10-2EDF-400F-B481-0CD34BFC68AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F0CAA10-2EDF-400F-B481-0CD34BFC68AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F0CAA10-2EDF-400F-B481-0CD34BFC68AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D516F61-D6BF-487E-AEF3-87D702BE331E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D516F61-D6BF-487E-AEF3-87D702BE331E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D516F61-D6BF-487E-AEF3-87D702BE331E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D516F61-D6BF-487E-AEF3-87D702BE331E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{05B2175C-5435-4387-AD16-9312B5169F47} = {08363387-B649-423D-96B3-132728D24C10}
 		{8F0CAA10-2EDF-400F-B481-0CD34BFC68AA} = {607C1768-5BF1-46BD-9139-76E521317A70}
+		{6D516F61-D6BF-487E-AEF3-87D702BE331E} = {607C1768-5BF1-46BD-9139-76E521317A70}
 	EndGlobalSection
 EndGlobal

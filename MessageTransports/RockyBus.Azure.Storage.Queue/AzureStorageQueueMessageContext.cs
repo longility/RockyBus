@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Storage.Queue;
 
 namespace RockyBus
 {
-    public class AzureServiceBusMessageContext : IMessageContext
+    public class AzureStorageQueueMessageContext : IMessageContext
     {
         private readonly IBus bus;
-        public AzureServiceBusMessageContext(IBus bus, Microsoft.Azure.ServiceBus.Message serviceBusMessage)
+        public AzureStorageQueueMessageContext(IBus bus, CloudQueueMessage cloudQueueMessage)
         {
             this.bus = bus;
-            DeliveryCount = serviceBusMessage.SystemProperties.DeliveryCount;
-            EnqueueTime = new DateTimeOffset(serviceBusMessage.SystemProperties.EnqueuedTimeUtc);
-            MessageHeaders = serviceBusMessage.UserProperties.ToDictionary((arg) => arg.Key, (arg) => arg.Value as string);
+            DeliveryCount = cloudQueueMessage.DequeueCount;
+            EnqueueTime = cloudQueueMessage.InsertionTime;
+            MessageHeaders = new Dictionary<string, string>();
         }
 
         public int? DeliveryCount { get; }
