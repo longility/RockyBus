@@ -54,7 +54,12 @@ namespace RockyBus
             foreach (var queueName in configuration.PublishAndSendOptions.AvailablePublishingQueues)
             {
                 var queue = queueClient.GetQueueReference(queueName.ToLower());
+                if (!await queue.ExistsAsync().ConfigureAwait(false)) return;
+
                 await queue.FetchAttributesAsync().ConfigureAwait(false);
+
+                if (!queue.Metadata.ContainsKey(MessageTypeKey)) return;
+
                 if(queue.Metadata[MessageTypeKey].Split(',').Contains(messageTypeName))
                 {
                     await queue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName)).ConfigureAwait(false);
@@ -65,6 +70,8 @@ namespace RockyBus
         public async Task Send<T>(T message, string messageTypeName, SendOptions sendOptions = null)
         {
             var queue = queueClient.GetQueueReference(configuration.PublishAndSendOptions.GetQueue<T>().ToLower());
+            if (!await queue.ExistsAsync().ConfigureAwait(false)) return;
+
             await queue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName));
         }
 
