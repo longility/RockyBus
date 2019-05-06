@@ -1,11 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using RockyBus.Message;
-using System.Collections.Generic;
-using Microsoft.Azure.Storage;
+﻿using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Queue;
+using RockyBus.Message;
+using System;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RockyBus
 {
@@ -36,7 +35,7 @@ namespace RockyBus
 
         public async Task InitializeReceivingEndpoint()
         {
-            var queueName = configuration.ReceiveOptions.QueueName;
+            var queueName = configuration.ReceiveOptions.QueueName.ToLower();
             if (string.IsNullOrWhiteSpace(queueName)) return;
 
             this.receivingQueue = queueClient.GetQueueReference(queueName);
@@ -54,7 +53,7 @@ namespace RockyBus
         {
             foreach (var queueName in configuration.PublishAndSendOptions.AvailablePublishingQueues)
             {
-                var queue = queueClient.GetQueueReference(queueName);
+                var queue = queueClient.GetQueueReference(queueName.ToLower());
                 await queue.FetchAttributesAsync().ConfigureAwait(false);
                 if(queue.Metadata[MessageTypeKey].Split(',').Contains(messageTypeName))
                 {
@@ -65,7 +64,7 @@ namespace RockyBus
 
         public async Task Send<T>(T message, string messageTypeName, SendOptions sendOptions = null)
         {
-            var queue = queueClient.GetQueueReference(configuration.PublishAndSendOptions.GetQueue<T>());
+            var queue = queueClient.GetQueueReference(configuration.PublishAndSendOptions.GetQueue<T>().ToLower());
             await queue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName));
         }
 
