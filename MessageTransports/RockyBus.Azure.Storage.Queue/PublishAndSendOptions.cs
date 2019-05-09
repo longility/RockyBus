@@ -7,6 +7,8 @@ namespace RockyBus.Azure.Storage.Queue
     {
         private readonly IDictionary<Type, string> CommandToQueueMap = new Dictionary<Type, string>();
         private readonly List<string> availablePublishingQueues = new List<string>();
+
+        public bool PublishAndSendToDebugQueue { get; set; } = true;
         public PublishAndSendOptions MapCommandToQueue<T>(string queue)
         {
             CommandToQueueMap.Add(typeof(T), queue);

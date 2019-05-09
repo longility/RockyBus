@@ -19,15 +19,23 @@ namespace RockyBus.SenderDemo
         static async Task<IBus> JupiterService()
         {
             var bus = new BusBuilder()
-                .UseAzureServiceBus(
-                    ConnectionString,
+                .UseAzureStorageQueue(
+                    "UseDevelopmentStorage=true",
                     configuration =>
                     {
-                        configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
+                        configuration.PublishAndSendOptions.AddAvailableQueues("saturn");
                         configuration.PublishAndSendOptions
-                                     .AttemptCreateTopicWith(new Microsoft.Azure.Management.ServiceBus.Models.SBTopic { EnablePartitioning = true })
-                                     .MapCommandToQueue<AppleCommand>("saturn");
+                            .MapCommandToQueue<AppleCommand>("saturn");
                     })
+                //.UseAzureServiceBus(
+                //    ConnectionString,
+                //    configuration =>
+                //    {
+                //        configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
+                //        configuration.PublishAndSendOptions
+                //                     .AttemptCreateTopicWith(new Microsoft.Azure.Management.ServiceBus.Models.SBTopic { EnablePartitioning = true })
+                //                     .MapCommandToQueue<AppleCommand>("saturn");
+                //    })
                 .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Command"))
                 .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Event"))
                 .Build();
@@ -78,13 +86,19 @@ namespace RockyBus.SenderDemo
                 .AddSingleton(p =>
                     {
                         return new BusBuilder()
-                            .UseAzureServiceBus(
-                                ConnectionString,
-                                configuration =>
+                            .UseAzureStorageQueue(
+                                "UseDevelopmentStorage=true",
+                                configuration => 
                                 {
-                                    configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
                                     configuration.ReceiveOptions.QueueName = "saturn";
                                 })
+                            //.UseAzureServiceBus(
+                            //    ConnectionString,
+                            //    configuration =>
+                            //    {
+                            //        configuration.SetManagementSettings(SubscriptionId, TenantId, ClientId, ClientSecret, ResourceGroupName, NamespaceName);
+                            //        configuration.ReceiveOptions.QueueName = "saturn";
+                            //    })
                             .UseMicrosoftDependencyInjection(p, serviceCollection)
                             .DefineCommandScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Command"))
                             .DefineEventScanRuleWith(t => t.Namespace == "RockyBus.DemoMessages" && t.Name.EndsWith("Event"))
@@ -103,8 +117,9 @@ namespace RockyBus.SenderDemo
         {
             var buses = new[]
             {
-                await JupiterService(),
-                await SaturnService()
+                await SaturnService(),
+                await JupiterService()
+                
             };
 
             Console.WriteLine("Press any key to end.");

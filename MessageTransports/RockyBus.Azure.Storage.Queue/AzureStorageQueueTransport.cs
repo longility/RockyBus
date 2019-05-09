@@ -15,6 +15,7 @@ namespace RockyBus
         private readonly CloudQueueClient queueClient;
         private CloudQueue receivingQueue;
         private CloudQueue receivingPoisonQueue;
+        private CloudQueue debugQueue;
         private readonly System.Timers.Timer timer = new System.Timers.Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         public IReceivingMessageTypeNames ReceivingMessageTypeNames { get; set; }
@@ -31,7 +32,12 @@ namespace RockyBus
             queueClient = storageAccount.CreateCloudQueueClient();
         }
 
-        public Task InitializePublishingEndpoint() => Task.CompletedTask;
+        public async Task InitializePublishingEndpoint()
+        {
+            if (!configuration.PublishAndSendOptions.PublishAndSendToDebugQueue) return;
+            debugQueue = queueClient.GetQueueReference("debug");
+            await debugQueue.CreateIfNotExistsAsync().ConfigureAwait(false);
+        }
 
         public async Task InitializeReceivingEndpoint()
         {
@@ -60,10 +66,12 @@ namespace RockyBus
 
                 if (!queue.Metadata.ContainsKey(MessageTypeKey)) return;
 
-                if(queue.Metadata[MessageTypeKey].Split(',').Contains(messageTypeName))
+                if (queue.Metadata[MessageTypeKey].Split(',').Contains(messageTypeName))
                 {
                     await queue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName)).ConfigureAwait(false);
                 }
+
+                if(debugQueue != null) await debugQueue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName)).ConfigureAwait(false);
             }
         }
 
@@ -72,7 +80,9 @@ namespace RockyBus
             var queue = queueClient.GetQueueReference(configuration.PublishAndSendOptions.GetQueue<T>().ToLower());
             if (!await queue.ExistsAsync().ConfigureAwait(false)) return;
 
-            await queue.AddMessageAsync(message.WrapAndCreateCloudQueueMessage(messageTypeName));
+            var cloudQueueMessage = message.WrapAndCreateCloudQueueMessage(messageTypeName);
+            await queue.AddMessageAsync(cloudQueueMessage).ConfigureAwait(false);
+            if (debugQueue != null) await debugQueue.AddMessageAsync(cloudQueueMessage).ConfigureAwait(false);
         }
 
         public Task StartReceivingMessages(MessageHandlerExecutor messageHandlerExecutor)
@@ -97,11 +107,11 @@ namespace RockyBus
                 }
                 catch (Exception)
                 {
-                    if(cloudQueueMessage.DequeueCount < configuration.ReceiveOptions.MaxDequeueCount)
-                    await receivingQueue.UpdateMessageAsync(
-                        cloudQueueMessage,
-                        TimeSpan.Zero,
-                        MessageUpdateFields.Visibility).ConfigureAwait(false);
+                    if (cloudQueueMessage.DequeueCount < configuration.ReceiveOptions.MaxDequeueCount)
+                        await receivingQueue.UpdateMessageAsync(
+                            cloudQueueMessage,
+                            TimeSpan.Zero,
+                            MessageUpdateFields.Visibility).ConfigureAwait(false);
                     else
                     {
                         await receivingQueue.DeleteMessageAsync(cloudQueueMessage);
@@ -113,7 +123,7 @@ namespace RockyBus
             return Task.CompletedTask;
         }
 
-        public Task StopReceivingMessages() 
+        public Task StopReceivingMessages()
         {
             timer.Stop();
             cancellationTokenSource.Cancel();
