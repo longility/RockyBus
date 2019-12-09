@@ -41,7 +41,7 @@ namespace RockyBus.Azure.ServiceBus
             string name = nameof(eventMessageFilter);
             foreach (var r in eventMessageFilter)
             {
-                var evtName = counter > 1 ? $"{name} {counter.ToString()}" : name;
+                var evtName = counter > 1 ? $"{name}{counter.ToString()}" : name;
                 await CreateOrUpdateRule(evtName, r).ConfigureAwait(false);
                 counter++;
             }
