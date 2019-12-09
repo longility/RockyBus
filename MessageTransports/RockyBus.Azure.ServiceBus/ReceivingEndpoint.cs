@@ -37,7 +37,14 @@ namespace RockyBus.Azure.ServiceBus
             };
 
             //429 too many requests if running rules at the same time
-            await CreateOrUpdateRule(nameof(eventMessageFilter), eventMessageFilter).ConfigureAwait(false);
+            int counter = 1;
+            string name = nameof(eventMessageFilter);
+            foreach (var r in eventMessageFilter)
+            {
+                var evtName = counter > 1 ? $"{name} {counter.ToString()}" : name;
+                await CreateOrUpdateRule(evtName, r).ConfigureAwait(false);
+                counter++;
+            }
             await CreateOrUpdateRule(nameof(commandMessageFilter), commandMessageFilter).ConfigureAwait(false);
         }
 
@@ -66,15 +73,30 @@ namespace RockyBus.Azure.ServiceBus
                     sbSubscription));
         }
 
-        Rule CreateEventMessageFilter()
+        IEnumerable<Rule> CreateEventMessageFilter()
         {
-            return eventMessageTypeNames.Any() ?
-                                        new Rule
-                                        {
-                                            SqlFilter = new SqlFilter(
-                                                $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", eventMessageTypeNames.Select(n => $"'{n}'"))})")
-                                        }
-                : new Rule { SqlFilter = new SqlFilter("user.alwaysfalse IS NOT NULL") };
+            List<Rule> result = new List<Rule>();
+            if (!eventMessageTypeNames.Any())
+                result.Add(new Rule { SqlFilter = new SqlFilter("user.alwaysfalse IS NOT NULL") });
+            else
+            {
+                int maxCount = 10;
+                int counter = 1;
+                IEnumerable<string> typesNamesForFilter = eventMessageTypeNames.Take(maxCount);
+                while (typesNamesForFilter.Any())
+                {
+                    result.Add(
+                        new Rule
+                        {
+                            SqlFilter = new SqlFilter(
+                                                $"user.{UserProperties.MessageTypeKey} IN ({string.Join(",", typesNamesForFilter.Select(n => $"'{n}'"))})")
+                        }
+                        );
+                    typesNamesForFilter = eventMessageTypeNames.Skip(counter * maxCount).Take(maxCount);
+                    counter++;
+                }
+            }
+            return result;
         }
 
         Task CreateOrUpdateRule(string filterName, Rule rule) =>
