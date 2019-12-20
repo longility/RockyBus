@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -36,9 +37,11 @@ namespace RockyBus.Azure.ServiceBus
                     $"user.{UserProperties.DestinationQueueKey}='{configuration.ReceiveOptions.QueueName}'")
             };
 
+            string name = nameof(eventMessageFilter);
+            await ClearExistingRules(name);
+
             //429 too many requests if running rules at the same time
             int counter = 1;
-            string name = nameof(eventMessageFilter);
             foreach (var r in eventMessageFilter)
             {
                 var evtName = counter > 1 ? $"{name}{counter.ToString()}" : name;
@@ -109,5 +112,30 @@ namespace RockyBus.Azure.ServiceBus
                     filterName,
                     rule)
             );
+
+        async Task ClearExistingRules(string evtName)
+        {
+            try
+            {
+                var existingRules = await sbManagementClient.Rules.ListBySubscriptionsAsync(
+                    configuration.ResourceGroupName,
+                            configuration.NamespaceName,
+                            topicName,
+                            configuration.ReceiveOptions.QueueName);
+
+                if (existingRules?.Any() == false) return;
+
+                foreach (var rule in existingRules.Where(r => r.Name.Contains(evtName)))
+                {
+                    await sbManagementClient.Rules.DeleteAsync(
+                           configuration.ResourceGroupName,
+                           configuration.NamespaceName,
+                           topicName,
+                           configuration.ReceiveOptions.QueueName,
+                           rule.Name);
+                }
+            }
+            catch { }
+        }
     }
 }
