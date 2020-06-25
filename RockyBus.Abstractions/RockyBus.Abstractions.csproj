@@ -11,6 +11,14 @@
     <Copyright>Copyright 2017 RockyBus</Copyright>
     <PackageTags>RockyBus</PackageTags>
     <PackageProjectUrl>https://github.com/longility/RockyBus</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
 
 </Project>
