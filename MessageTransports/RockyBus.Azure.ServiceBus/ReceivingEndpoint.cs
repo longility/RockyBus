@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.Management.ServiceBus;
 using Microsoft.Azure.Management.ServiceBus.Models;
-using System;
+using Microsoft.Rest.Azure;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -38,7 +38,11 @@ namespace RockyBus.Azure.ServiceBus
             };
 
             string name = nameof(eventMessageFilter);
-            await ClearExistingRules(name);
+
+            if (await IsDelta(eventMessageFilter))
+            {
+                await ClearExistingRules(name);
+            }
 
             //429 too many requests if running rules at the same time
             int counter = 1;
@@ -117,11 +121,7 @@ namespace RockyBus.Azure.ServiceBus
         {
             try
             {
-                var existingRules = await sbManagementClient.Rules.ListBySubscriptionsAsync(
-                    configuration.ResourceGroupName,
-                            configuration.NamespaceName,
-                            topicName,
-                            configuration.ReceiveOptions.QueueName);
+                var existingRules = await GetExistingRules();
 
                 if (existingRules?.Any() == false) return;
 
@@ -136,6 +136,32 @@ namespace RockyBus.Azure.ServiceBus
                 }
             }
             catch { }
+        }
+
+        async Task<IEnumerable<Rule>> GetExistingRules()
+        {
+            IPage<Rule> existingRules = await sbManagementClient.Rules.ListBySubscriptionsAsync(
+                    configuration.ResourceGroupName,
+                            configuration.NamespaceName,
+                            topicName,
+                            configuration.ReceiveOptions.QueueName);
+            List<Rule> existingRulesList = existingRules.ToList();
+            string nextPageLink = existingRules.NextPageLink;
+            while (nextPageLink != null)
+            {
+                IPage<Rule> rules = await sbManagementClient.Rules.ListBySubscriptionsNextAsync(existingRules.NextPageLink);
+                existingRulesList.AddRange(rules.ToList());
+                nextPageLink = rules.NextPageLink;
+            }
+            return existingRulesList;
+        }
+
+        async Task<bool> IsDelta(IEnumerable<Rule> eventMessageTypes)
+        {
+            var existingMessageRules = await GetExistingRules();
+            // Existing message rules has command message filter, so need to remove before comparing
+            var existingMessageRulesCount = existingMessageRules.Any() ? existingMessageRules.Count() - 1 : 0;
+            return eventMessageTypes.Count() != existingMessageRulesCount;
         }
     }
 }
