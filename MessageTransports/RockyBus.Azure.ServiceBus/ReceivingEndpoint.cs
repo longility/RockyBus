@@ -159,7 +159,7 @@ namespace RockyBus.Azure.ServiceBus
         async Task<bool> IsDelta(IEnumerable<Rule> eventMessageTypes)
         {
             var existingMessageRules = await GetExistingRules();
-            // Existing message rules has command message filter, so need to remove before comparing
+            // Existing message rules have command message filter, so need to remove before comparing
             var existingMessageRulesCount = existingMessageRules.Any() ? existingMessageRules.Count() - 1 : 0;
             return eventMessageTypes.Count() != existingMessageRulesCount;
         }
